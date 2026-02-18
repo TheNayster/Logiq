@@ -1,92 +1,113 @@
 """
-Database Manager for Logiq
-Handles async MongoDB operations with connection pooling
+Database Manager - Stoat-only MongoDB manager
+Pure async with Motor (no Discord)
 """
 
-import asyncio
-from typing import Optional, Dict, Any, List
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 import logging
+from typing import Dict, Any, Optional, List
+from datetime import datetime
+
+from motor.motor_asyncio import AsyncClient, AsyncDatabase
+import pymongo
 
 logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
-    """Async MongoDB database manager with connection pooling"""
+    """Async MongoDB database manager with Stoat schema support"""
 
     def __init__(self, uri: str, database_name: str, pool_size: int = 10):
-        """
-        Initialize database manager
-
-        Args:
-            uri: MongoDB connection URI
-            database_name: Name of the database
-            pool_size: Maximum connection pool size
-        """
         self.uri = uri
         self.database_name = database_name
         self.pool_size = pool_size
-        self.client: Optional[AsyncIOMotorClient] = None
-        self.db: Optional[AsyncIOMotorDatabase] = None
-        self._connected = False
+        self.client: Optional[AsyncClient] = None
+        self.db: Optional[AsyncDatabase] = None
 
     async def connect(self) -> None:
         """Establish database connection"""
         try:
-            self.client = AsyncIOMotorClient(
+            self.client = AsyncClient(
                 self.uri,
                 maxPoolSize=self.pool_size,
-                minPoolSize=1,
-                serverSelectionTimeoutMS=5000
+                minPoolSize=1
             )
             self.db = self.client[self.database_name]
+
             # Test connection
             await self.client.admin.command('ping')
-            self._connected = True
-            logger.info(f"Connected to MongoDB database: {self.database_name}")
+            logger.info(f"✅ Connected to MongoDB: {self.database_name}")
+
+            # Create indexes
+            await self._create_indexes()
+
         except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
+            logger.error(f"Database connection failed: {e}", exc_info=True)
             raise
+
+    async def _create_indexes(self) -> None:
+        """Create database indexes for Stoat schema"""
+        try:
+            # Users collection
+            await self.db.users.create_index([("user_id", 1), ("guild_id", 1)], unique=True)
+            await self.db.users.create_index([("guild_id", 1)])
+
+            # Guilds collection
+            await self.db.guilds.create_index([("guild_id", 1)], unique=True)
+
+            # Members collection
+            await self.db.members.create_index([("guild_id", 1), ("user_id", 1)], unique=True)
+
+            # Moderation logs
+            await self.db.moderation_actions.create_index([("guild_id", 1)])
+            await self.db.moderation_actions.create_index([("target_id", 1)])
+
+            # Tickets
+            await self.db.tickets.create_index([("guild_id", 1)])
+            await self.db.tickets.create_index([("creator_id", 1)])
+
+            # Giveaways
+            await self.db.giveaways.create_index([("guild_id", 1)])
+
+            logger.info("Database indexes created")
+
+        except Exception as e:
+            logger.error(f"Index creation error: {e}")
 
     async def disconnect(self) -> None:
         """Close database connection"""
         if self.client:
             self.client.close()
-            self._connected = False
-            logger.info("Disconnected from MongoDB")
+            logger.info("Database disconnected")
 
     @property
     def is_connected(self) -> bool:
-        """Check if database is connected"""
-        return self._connected
+        return self.client is not None
 
-    # User operations
-    async def get_user(self, user_id: int, guild_id: int) -> Optional[Dict[str, Any]]:
-        """Get user document"""
+    # ========== USER OPERATIONS ==========
+    async def get_user(self, user_id: str, guild_id: str) -> Optional[Dict[str, Any]]:
+        """Get user document (Stoat schema with string IDs)"""
         return await self.db.users.find_one({
             "user_id": user_id,
             "guild_id": guild_id
         })
 
-    async def create_user(self, user_id: int, guild_id: int, data: Dict[str, Any] = None) -> Dict[str, Any]:
+    async def create_user(self, user_id: str, guild_id: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
         """Create new user document"""
-        user_data = {
+        user_doc = {
             "user_id": user_id,
             "guild_id": guild_id,
+            "balance": 0,
             "xp": 0,
             "level": 0,
-            "balance": 1000,
-            "inventory": [],
-            "warnings": [],
-            "created_at": asyncio.get_event_loop().time()
+            "created_at": datetime.utcnow().isoformat(),
+            "last_daily": None,
+            **(data or {})
         }
-        if data:
-            user_data.update(data)
 
-        await self.db.users.insert_one(user_data)
-        return user_data
+        await self.db.users.insert_one(user_doc)
+        return user_doc
 
-    async def update_user(self, user_id: int, guild_id: int, data: Dict[str, Any]) -> bool:
+    async def update_user(self, user_id: str, guild_id: str, data: Dict[str, Any]) -> bool:
         """Update user document"""
         result = await self.db.users.update_one(
             {"user_id": user_id, "guild_id": guild_id},
@@ -94,37 +115,96 @@ class DatabaseManager:
         )
         return result.modified_count > 0
 
-    async def increment_user_field(self, user_id: int, guild_id: int, field: str, amount: int = 1) -> bool:
-        """Increment a numeric field in user document"""
+    async def add_balance(self, user_id: str, guild_id: str, amount: int) -> bool:
+        """Add to user balance"""
         result = await self.db.users.update_one(
             {"user_id": user_id, "guild_id": guild_id},
-            {"$inc": {field: amount}}
+            {"$inc": {"balance": amount}}
         )
         return result.modified_count > 0
 
-    # Guild operations
-    async def get_guild(self, guild_id: int) -> Optional[Dict[str, Any]]:
+    async def add_xp(self, user_id: str, guild_id: str, amount: int) -> bool:
+        """Add XP to user"""
+        result = await self.db.users.update_one(
+            {"user_id": user_id, "guild_id": guild_id},
+            {"$inc": {"xp": amount}}
+        )
+        return result.modified_count > 0
+
+    async def get_leaderboard(self, guild_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get top users by balance"""
+        return await self.db.users.find({"guild_id": guild_id}).sort("balance", -1).limit(limit).to_list(length=limit)
+
+    # ========== MEMBER OPERATIONS ==========
+    async def get_member(self, guild_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get member document"""
+        return await self.db.members.find_one({
+            "guild_id": guild_id,
+            "user_id": user_id
+        })
+
+    async def create_member(self, guild_id: str, user_id: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Create member document"""
+        member_doc = {
+            "guild_id": guild_id,
+            "user_id": user_id,
+            "roles": [],
+            "is_admin": False,
+            "is_mod": False,
+            "created_at": datetime.utcnow().isoformat(),
+            **(data or {})
+        }
+
+        await self.db.members.insert_one(member_doc)
+        return member_doc
+
+    async def update_member(self, guild_id: str, user_id: str, data: Dict[str, Any]) -> bool:
+        """Update member document"""
+        result = await self.db.members.update_one(
+            {"guild_id": guild_id, "user_id": user_id},
+            {"$set": data}
+        )
+        return result.modified_count > 0
+
+    async def add_member_role(self, guild_id: str, user_id: str, role_id: str) -> bool:
+        """Add role to member"""
+        result = await self.db.members.update_one(
+            {"guild_id": guild_id, "user_id": user_id},
+            {"$addToSet": {"roles": role_id}}
+        )
+        return result.modified_count > 0
+
+    async def remove_member_role(self, guild_id: str, user_id: str, role_id: str) -> bool:
+        """Remove role from member"""
+        result = await self.db.members.update_one(
+            {"guild_id": guild_id, "user_id": user_id},
+            {"$pull": {"roles": role_id}}
+        )
+        return result.modified_count > 0
+
+    # ========== GUILD OPERATIONS ==========
+    async def get_guild(self, guild_id: str) -> Optional[Dict[str, Any]]:
         """Get guild configuration"""
         return await self.db.guilds.find_one({"guild_id": guild_id})
 
-    async def create_guild(self, guild_id: int, data: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Create new guild configuration"""
-        guild_data = {
+    async def get_guild_data(self, guild_id: str) -> Dict[str, Any]:
+        """Alias for get_guild"""
+        return await self.get_guild(guild_id)
+
+    async def create_guild(self, guild_id: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Create guild configuration"""
+        guild_doc = {
             "guild_id": guild_id,
-            "prefix": "/",
-            "modules": {},
-            "log_channel": None,
-            "welcome_channel": None,
-            "verified_role": None,
-            "created_at": asyncio.get_event_loop().time()
+            "name": f"Guild {guild_id}",
+            "created_at": datetime.utcnow().isoformat(),
+            "prefix": "!",
+            **(data or {})
         }
-        if data:
-            guild_data.update(data)
 
-        await self.db.guilds.insert_one(guild_data)
-        return guild_data
+        await self.db.guilds.insert_one(guild_doc)
+        return guild_doc
 
-    async def update_guild(self, guild_id: int, data: Dict[str, Any]) -> bool:
+    async def update_guild(self, guild_id: str, data: Dict[str, Any]) -> bool:
         """Update guild configuration"""
         result = await self.db.guilds.update_one(
             {"guild_id": guild_id},
@@ -132,129 +212,81 @@ class DatabaseManager:
         )
         return result.modified_count > 0
 
-    # Leveling operations
-    async def get_leaderboard(self, guild_id: int, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get XP leaderboard for guild"""
-        cursor = self.db.users.find(
-            {"guild_id": guild_id}
-        ).sort("xp", -1).limit(limit)
-        return await cursor.to_list(length=limit)
-
-    # Economy operations
-    async def add_balance(self, user_id: int, guild_id: int, amount: int) -> bool:
-        """Add to user balance"""
-        return await self.increment_user_field(user_id, guild_id, "balance", amount)
-
-    async def remove_balance(self, user_id: int, guild_id: int, amount: int) -> bool:
-        """Remove from user balance"""
-        user = await self.get_user(user_id, guild_id)
-        if user and user.get("balance", 0) >= amount:
-            return await self.increment_user_field(user_id, guild_id, "balance", -amount)
-        return False
-
-    async def add_item(self, user_id: int, guild_id: int, item: Dict[str, Any]) -> bool:
-        """Add item to user inventory"""
-        result = await self.db.users.update_one(
-            {"user_id": user_id, "guild_id": guild_id},
-            {"$push": {"inventory": item}}
-        )
-        return result.modified_count > 0
-
-    # Moderation operations
-    async def add_warning(self, user_id: int, guild_id: int, warning: Dict[str, Any]) -> bool:
-        """Add warning to user"""
-        result = await self.db.users.update_one(
-            {"user_id": user_id, "guild_id": guild_id},
-            {"$push": {"warnings": warning}}
-        )
-        return result.modified_count > 0
-
-    async def get_warnings(self, user_id: int, guild_id: int) -> List[Dict[str, Any]]:
-        """Get user warnings"""
-        user = await self.get_user(user_id, guild_id)
-        return user.get("warnings", []) if user else []
-
-    # Tickets operations
-    async def create_ticket(self, ticket_data: Dict[str, Any]) -> str:
-        """Create support ticket"""
-        result = await self.db.tickets.insert_one(ticket_data)
-        return str(result.inserted_id)
-
-    async def get_ticket(self, ticket_id: str) -> Optional[Dict[str, Any]]:
-        """Get ticket by ID"""
-        from bson import ObjectId
-        return await self.db.tickets.find_one({"_id": ObjectId(ticket_id)})
-
-    async def update_ticket(self, ticket_id: str, data: Dict[str, Any]) -> bool:
-        """Update ticket"""
-        from bson import ObjectId
-        result = await self.db.tickets.update_one(
-            {"_id": ObjectId(ticket_id)},
-            {"$set": data}
-        )
-        return result.modified_count > 0
-
-    # Analytics operations
-    async def log_event(self, event_type: str, data: Dict[str, Any]) -> None:
-        """Log analytics event"""
-        event = {
-            "type": event_type,
-            "timestamp": asyncio.get_event_loop().time(),
-            **data
-        }
-        await self.db.analytics.insert_one(event)
-
-    async def get_analytics(
-        self,
-        guild_id: int,
-        event_type: Optional[str] = None,
-        start_time: Optional[float] = None,
-        end_time: Optional[float] = None
-    ) -> List[Dict[str, Any]]:
-        """Get analytics events with filters"""
-        query = {"guild_id": guild_id}
-        if event_type:
-            query["type"] = event_type
-        if start_time or end_time:
-            query["timestamp"] = {}
-            if start_time:
-                query["timestamp"]["$gte"] = start_time
-            if end_time:
-                query["timestamp"]["$lte"] = end_time
-
-        cursor = self.db.analytics.find(query).sort("timestamp", -1)
-        return await cursor.to_list(length=1000)
-
-    # Reminder operations
-    async def create_reminder(self, reminder_data: Dict[str, Any]) -> str:
-        """Create reminder"""
-        result = await self.db.reminders.insert_one(reminder_data)
-        return str(result.inserted_id)
-
-    async def get_due_reminders(self, current_time: float) -> List[Dict[str, Any]]:
-        """Get reminders that are due"""
-        cursor = self.db.reminders.find({
-            "remind_at": {"$lte": current_time},
-            "completed": False
+    # ========== ROLE OPERATIONS ==========
+    async def get_role(self, guild_id: str, role_id: str) -> Optional[Dict[str, Any]]:
+        """Get role configuration"""
+        return await self.db.roles.find_one({
+            "guild_id": guild_id,
+            "role_id": role_id
         })
-        return await cursor.to_list(length=100)
 
-    async def complete_reminder(self, reminder_id: str) -> bool:
-        """Mark reminder as completed"""
-        from bson import ObjectId
-        result = await self.db.reminders.update_one(
-            {"_id": ObjectId(reminder_id)},
-            {"$set": {"completed": True}}
+    async def create_role(self, guild_id: str, role_id: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Create role"""
+        role_doc = {
+            "guild_id": guild_id,
+            "role_id": role_id,
+            "created_at": datetime.utcnow().isoformat(),
+            **(data or {})
+        }
+
+        await self.db.roles.insert_one(role_doc)
+        return role_doc
+
+    # ========== MODERATION OPERATIONS ==========
+    async def add_action(
+        self,
+        action_type: str,
+        target_id: str,
+        guild_id: str,
+        moderator_id: str,
+        reason: str,
+        timestamp: datetime
+    ) -> bool:
+        """Log moderation action"""
+        action_doc = {
+            "type": action_type,
+            "target_id": target_id,
+            "guild_id": guild_id,
+            "moderator_id": moderator_id,
+            "reason": reason,
+            "timestamp": timestamp.isoformat()
+        }
+
+        result = await self.db.moderation_actions.insert_one(action_doc)
+        return result.inserted_id is not None
+
+    async def get_user_actions(
+        self,
+        guild_id: str,
+        user_id: str,
+        action_type: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """Get moderation actions for user"""
+        query = {"guild_id": guild_id, "target_id": user_id}
+        if action_type:
+            query["type"] = action_type
+
+        return await self.db.moderation_actions.find(query).sort("timestamp", -1).to_list(length=100)
+
+    # ========== TICKET OPERATIONS ==========
+    async def create_ticket(self, guild_id: str, creator_id: str, data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Create support ticket"""
+        ticket_doc = {
+            "guild_id": guild_id,
+            "creator_id": creator_id,
+            "status": "open",
+            "created_at": datetime.utcnow().isoformat(),
+            **(data or {})
+        }
+
+        result = await self.db.tickets.insert_one(ticket_doc)
+        ticket_doc["_id"] = result.inserted_id
+        return ticket_doc
+
+    async def close_ticket(self, ticket_id) -> bool:
+        """Close ticket"""
+        result = await self.db.tickets.update_one(
+            {"_id": ticket_id},
+            {"$set": {"status": "closed", "closed_at": datetime.utcnow().isoformat()}}
         )
         return result.modified_count > 0
-
-    # Shop operations
-    async def get_shop_items(self, guild_id: int) -> List[Dict[str, Any]]:
-        """Get shop items for guild"""
-        cursor = self.db.shop.find({"guild_id": guild_id})
-        return await cursor.to_list(length=100)
-
-    async def create_shop_item(self, item_data: Dict[str, Any]) -> str:
-        """Create shop item"""
-        result = await self.db.shop.insert_one(item_data)
-        return str(result.inserted_id)

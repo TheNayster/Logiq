@@ -1,98 +1,123 @@
-# Logiq Configuration File
-# Environment: production | development | testing
+# Logiq Bot Configuration - STOAT ONLY
+# This bot is designed exclusively for Stoat.chat
 
 bot:
-  token: "${DISCORD_BOT_TOKEN}"
-  prefix: "/"  # Slash commands only
-  status: "online"
-  activity: "Managing your community"
-  activity_type: "watching"  # playing, watching, listening, streaming
+  # Stoat bot credentials (get from https://stoat.chat/developers)
+  token: "${STOAT_BOT_TOKEN}"
+  prefix: "!"
+  case_insensitive: true
 
+# ========== STOAT API (ONLY) ==========
+stoat:
+  api_base: "https://stoat.chat/api"
+  ws_url: "wss://stoat.chat/socket"
+  timeout: 30
+
+# Database Configuration
 database:
   mongodb_uri: "${MONGODB_URI}"
   database_name: "Logiq"
   pool_size: 10
 
-logging:
-  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-  file: "logs/bot.log"
-  format: "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
-  date_format: "%Y-%m-%d %H:%M:%S"
+# ========== ROLLOUT CONFIGURATION ==========
+rollout:
+  # Rollout phases: internal | beta | gradual | stable
+  features:
+    verification: "stable"        # 100% of servers
+    moderation: "stable"          # 100% of servers
+    economy: "gradual"            # 50% of servers
+    leveling: "gradual"           # 50% of servers
+    tickets: "beta"               # 25% whitelist
+    giveaways: "beta"             # 25% whitelist
+    social_alerts: "internal"     # 5% testing
+    ai_chat: "internal"           # 10% testing
 
+  # Gradual rollout percentages
+  percentages:
+    economy: 50
+    leveling: 50
+    tickets: 25
+    giveaways: 25
+    social_alerts: 5
+    ai_chat: 10
+
+  # Beta whitelist (servers with early access)
+  whitelist:
+    tickets: []       # Add server IDs here
+    giveaways: []
+
+  # Blacklist (servers blocked from features)
+  blacklist:
+    economy: []
+    social_alerts: []
+
+# ========== FEATURE MODULES ==========
 modules:
   verification:
     enabled: true
-    welcome_channel: null
-    verified_role: null
-    verification_type: "button"  # button, captcha, oauth
+    default_method: "dm"
+    default_type: "button"
 
   moderation:
     enabled: true
-    log_channel: null
-    auto_mod:
-      spam_detection: true
-      toxicity_filter: false
-      max_mentions: 5
-      max_emojis: 10
-
-  roles:
-    enabled: true
-    self_assign: true
-    reaction_roles: true
+    log_actions: true
+    max_warnings: 3
 
   leveling:
     enabled: true
     xp_per_message: 10
-    xp_cooldown: 60  # seconds
-    voice_xp_rate: 5  # per minute
+    xp_cooldown: 60
+    level_up_multiplier: 1.5
+    max_level: 100
 
   economy:
     enabled: true
-    currency_name: "ProgrammiCoin"
+    currency_name: "Coins"
     currency_symbol: "💎"
     starting_balance: 1000
     daily_reward: 100
 
-  ai_chat:
-    enabled: false
-    provider: "openai"  # openai, anthropic
-    api_key: ""
-    model: "gpt-4"
-    max_tokens: 500
-    temperature: 0.7
+  music:
+    enabled: true
+    max_queue_size: 100
+    voice_enabled: false  # Awaiting Stoat voice API
 
   tickets:
     enabled: true
-    ticket_category: null
-    support_role: null
+    max_open_per_user: 3
+    auto_close_days: 7
 
-  analytics:
+  giveaways:
     enabled: true
-    report_channel: null
-    report_interval: 604800  # 7 days in seconds
+    min_duration: 300
+    max_duration: 2592000
 
-  games:
-    enabled: true
-    betting_enabled: true
+  social_alerts:
+    enabled: false    # Internal testing only
+    check_interval: 300
 
-web:
-  enabled: true
-  host: "0.0.0.0"
-  port: 8000
-  cors_origins:
-    - "http://localhost:3000"
-    - "https://yourdomain.com"
+  ai_chat:
+    enabled: false    # Internal testing only
+    provider: "openai"
 
-redis:
-  enabled: false
-  host: "localhost"
-  port: 6379
-  db: 0
-  password: null
+# Logging
+logging:
+  level: "INFO"
+  file: "logs/logiq.log"
+  max_bytes: 10485760
+  backup_count: 5
 
-api_keys:
-  openai: ""
-  anthropic: ""
-  youtube: ""
-  spotify_client_id: ""
-  spotify_client_secret: ""
+# Environment
+environment: "${ENVIRONMENT}"
+
+# Security
+security:
+  rate_limit_per_user: 10
+  filter_spam: true
+  allow_dms: true
+
+# Status
+presence:
+  status: "online"
+  activity_type: "playing"
+  activity_text: "Stoat.chat"

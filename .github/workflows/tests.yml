@@ -1,0 +1,127 @@
+name: Tests & Lint
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:latest
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio black flake8 coverage
+
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 cogs adapters utils database --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 cogs adapters utils database --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+
+    - name: Format check with black
+      run: |
+        black --check cogs adapters utils database --line-length=120 || true
+
+    - name: Run tests
+      env:
+        MONGODB_URI: mongodb://localhost:27017
+        STOAT_BOT_TOKEN: test_token
+        ENVIRONMENT: testing
+      run: |
+        pytest tests/ -v --tb=short --cov=adapters --cov=database --cov=utils --cov-report=xml
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Test healthcheck module
+      run: |
+        python -c "from healthcheck import HealthCheckHandler, start_health_check; print('✅ Healthcheck import OK')"
+
+    - name: Test adapter module
+      run: |
+        python -c "from adapters.adapter_interface import AdapterInterface; from adapters.stoat_adapter import StoatAdapter; print('✅ Adapter import OK')"
+
+    - name: Test database module
+      run: |
+        python -c "from database.db_manager import DatabaseManager; print('✅ Database import OK')"
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install black flake8 isort
+
+    - name: Check imports with isort
+      run: |
+        isort --check-only cogs adapters utils database --line-length=120 || true
+
+    - name: Format check with black
+      run: |
+        black --check cogs adapters utils database --line-length=120 || true
+
+    - name: Lint all Python files
+      run: |
+        flake8 cogs adapters utils database main.py healthcheck.py --max-line-length=120 --count --statistics || true

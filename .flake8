@@ -1,0 +1,27 @@
+[flake8]
+max-line-length = 120
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .tox,
+    .hypothesis
+ignore = 
+    E203,
+    E266,
+    E501,
+    W503,
+    F403,
+    F401
+per-file-ignores =
+    __init__.py: F401
+    tests/*: F401, F811
+max-complexity = 10
+count = True
+statistics = True

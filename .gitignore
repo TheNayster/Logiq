@@ -43,6 +43,8 @@ coverage.xml
 # Environments
 .env
 .env.local
+.env.*.local
+.env.*.vault
 .venv
 env/
 venv/
@@ -71,3 +73,73 @@ Thumbs.db
 
 # Config
 config.local.yaml
+
+# Environment variables - NEVER COMMIT THESE
+.env
+.env.local
+.env.*.local
+.env.prod
+.env.dev
+
+# Configuration overrides
+config.local.yaml
+config.*.yaml
+
+# IDE settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.pytest_cache/
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# Discord references (BLOCKED)
+discord.py
+discord/
+discord_*
+*discord*
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Temporary
+.tmp/
+*.tmp
+tempfile

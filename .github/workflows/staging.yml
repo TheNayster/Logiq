@@ -1,0 +1,63 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+jobs:
+  validate-stoat-only:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Validate Stoat-only
+      run: python scripts/validate_stoat_only.py
+
+    - name: Check for Discord references
+      run: |
+        echo "Checking for Discord code..."
+        ! grep -r "discord" . --include="*.py" --include="*.txt" --exclude-dir=.git --exclude-dir=.venv 2>/dev/null || exit 1
+        echo "✅ No Discord references found"
+
+  deploy-staging:
+    needs: validate-stoat-only
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:latest
+        options: >-
+          --health-cmd mongosh
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run tests
+      env:
+        MONGODB_URI: mongodb://localhost:27017
+        STOAT_BOT_TOKEN: test_token
+        ENVIRONMENT: staging
+      run: pytest tests/ -v
+
+    - name: Deploy
+      if: success()
+      run: echo "✅ Ready for staging deployment"

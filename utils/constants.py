@@ -1,14 +1,16 @@
 """
-Constants and configuration values for Logiq
+Constants and configuration values for Logiq (Stoat-only)
 """
 
 from typing import Dict, Any
 
-# Bot Information
+# Bot Information (Stoat-only)
 BOT_NAME = "Logiq"
 BOT_VERSION = "1.0.0"
-BOT_DESCRIPTION = "AI-enhanced Discord bot for community management"
+BOT_DESCRIPTION = "Feature-rich Stoat.chat bot for community management"
+BOT_PLATFORM = "Stoat.chat"
 BOT_GITHUB = "https://github.com/yourusername/Logiq"
+BOT_DOCS = "https://developers.stoat.chat/"
 
 # Emoji Constants
 EMOJIS = {
@@ -47,7 +49,7 @@ ECONOMY = {
     "starting_balance": 1000,
     "daily_reward": 100,
     "daily_cooldown": 86400,  # 24 hours
-    "currency_name": "ProgrammiCoin",
+    "currency_name": "Coins",
     "currency_symbol": "💎",
     "max_bet": 10000,
     "min_bet": 10
@@ -60,8 +62,8 @@ MODERATION = {
     "mute_role_name": "Muted",
     "max_mentions": 5,
     "max_emojis": 10,
-    "spam_threshold": 5,  # messages
-    "spam_interval": 5    # seconds
+    "spam_threshold": 5,
+    "spam_interval": 5
 }
 
 # Time Limits
@@ -75,7 +77,7 @@ TIME_LIMITS = {
 PAGINATION = {
     "items_per_page": 10,
     "leaderboard_size": 10,
-    "timeout": 60  # seconds
+    "timeout": 60
 }
 
 # AI Settings
@@ -87,12 +89,13 @@ AI_SETTINGS = {
     "spam_threshold": 0.8
 }
 
-# Music Settings
+# Music Settings (Text-based on Stoat)
 MUSIC = {
     "max_queue_size": 100,
     "default_volume": 50,
-    "max_song_length": 600,  # 10 minutes
-    "search_results": 5
+    "max_song_length": 600,
+    "search_results": 5,
+    "voice_support": False  # Coming in Stoat v1.1+
 }
 
 # Ticket Settings
@@ -109,7 +112,7 @@ TICKETS = {
 
 # Game Settings
 GAMES = {
-    "trivia_time": 30,        # seconds
+    "trivia_time": 30,
     "trivia_categories": ["general", "programming", "science", "history"],
     "blackjack_starting_chips": 100,
     "roulette_payouts": {
@@ -124,11 +127,11 @@ GAMES = {
 RATE_LIMITS: Dict[str, Dict[str, Any]] = {
     "commands": {
         "rate": 5,
-        "per": 60  # 5 commands per minute
+        "per": 60
     },
     "messages": {
         "rate": 10,
-        "per": 10  # 10 messages per 10 seconds
+        "per": 10
     }
 }
 
@@ -151,17 +154,28 @@ PATHS = {
     "assets": "assets"
 }
 
-# API Endpoints
+# API Endpoints (Stoat + Optional Services)
 API_ENDPOINTS = {
+    "stoat": "https://stoat.chat/api",
+    "stoat_ws": "wss://stoat.chat/socket",
     "openai": "https://api.openai.com/v1",
     "anthropic": "https://api.anthropic.com/v1"
 }
 
-# Status Messages
+# Status Messages (for Bot Activity on Stoat)
 STATUS_MESSAGES = [
-    "Managing your community",
-    "Powered by AI",
-    "Type /help",
-    "Serving {guild_count} servers",
-    "Moderating {member_count} members"
+    "🎮 Managing your community",
+    "🤖 Powered by AI on Stoat",
+    "💎 Type /help",
+    "🌍 Serving Stoat servers",
+    "🛡️ Keeping servers safe"
 ]
+
+# Stoat-specific constants
+STOAT_CONSTANTS = {
+    "api_base": "https://stoat.chat/api",
+    "ws_url": "wss://stoat.chat/socket",
+    "invite_base": "https://stoat.chat/invite",
+    "developer_portal": "https://stoat.chat/developers",
+    "community_url": "https://stoat.chat/community",
+}

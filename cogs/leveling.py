@@ -1,132 +1,139 @@
 """
-Leveling Cog for Logiq
-XP and leveling system with rank cards
+Leveling Cog for Logiq (Stoat-only)
+User level and XP system
 """
 
-import discord
-from discord import app_commands
-from discord.ext import commands
-from datetime import datetime
-from typing import Optional
 import logging
-from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
+from typing import Dict, Any, Optional
+from datetime import datetime
 
+from adapters.cog_base import AdaptedCog, app_command, listener
 from utils.embeds import EmbedFactory, EmbedColor
-from utils.constants import calculate_level_xp
-from utils.permissions import is_admin
 from database.db_manager import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
 
-class Leveling(commands.Cog):
-    """Leveling system cog"""
+class Leveling(AdaptedCog):
+    """Leveling system cog (Stoat-only)"""
 
-    def __init__(self, bot: commands.Bot, db: DatabaseManager, config: dict):
-        self.bot = bot
-        self.db = db
-        self.config = config
+    def __init__(self, adapter, db: DatabaseManager, config: dict):
+        super().__init__(adapter, db, config)
         self.module_config = config.get('modules', {}).get('leveling', {})
-        self.xp_cooldown = {}
+        self.xp_per_message = self.module_config.get('xp_per_message', 10)
+        self.xp_cooldown = self.module_config.get('xp_cooldown', 60)
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
-        """Award XP for messages"""
-        if not self.module_config.get('enabled', True):
+    @listener("message_create")
+    async def on_message(self, payload: Dict[str, Any]):
+        """Add XP on message (Stoat)"""
+        user_id = payload.get("author_id") or payload.get("user_id")
+        guild_id = payload.get("server_id") or payload.get("guild_id")
+        channel_id = payload.get("channel_id")
+
+        if not user_id or not guild_id or user_id == "bot":
             return
 
-        if message.author.bot or not message.guild:
-            return
+        try:
+            user_data = await self.db.get_user(user_id, guild_id)
+            if not user_data:
+                user_data = await self.db.create_user(user_id, guild_id)
 
-        # Check cooldown
-        user_key = f"{message.guild.id}_{message.author.id}"
-        current_time = datetime.utcnow().timestamp()
+            # Check cooldown
+            last_xp = user_data.get("last_xp_time")
+            if last_xp:
+                from datetime import datetime, timedelta
+                last_xp_dt = datetime.fromisoformat(last_xp)
+                if (datetime.utcnow() - last_xp_dt).seconds < self.xp_cooldown:
+                    return
 
-        if user_key in self.xp_cooldown:
-            if current_time - self.xp_cooldown[user_key] < self.module_config.get('xp_cooldown', 60):
-                return
+            # Add XP
+            old_level = user_data.get("level", 0)
+            new_xp = user_data.get("xp", 0) + self.xp_per_message
 
-        self.xp_cooldown[user_key] = current_time
+            # Calculate level (100 XP per level)
+            new_level = int(new_xp / 100)
+            level_up = new_level > old_level
 
-        # Get or create user
-        user_data = await self.db.get_user(message.author.id, message.guild.id)
-        if not user_data:
-            user_data = await self.db.create_user(message.author.id, message.guild.id)
-
-        # Calculate XP
-        xp_gain = self.module_config.get('xp_per_message', 10)
-        new_xp = user_data.get('xp', 0) + xp_gain
-        current_level = user_data.get('level', 0)
-
-        # Check for level up
-        next_level_xp = calculate_level_xp(current_level + 1)
-
-        if new_xp >= next_level_xp:
-            new_level = current_level + 1
-            await self.db.update_user(message.author.id, message.guild.id, {
-                'xp': new_xp,
-                'level': new_level
+            await self.db.update_user(user_id, guild_id, {
+                "xp": new_xp,
+                "level": new_level,
+                "last_xp_time": datetime.utcnow().isoformat()
             })
 
-            # Send level up message
-            embed = EmbedFactory.level_up(message.author, new_level, new_xp)
-            await message.channel.send(embed=embed)
-            logger.info(f"{message.author} leveled up to {new_level} in {message.guild}")
-        else:
-            await self.db.update_user(message.author.id, message.guild.id, {'xp': new_xp})
+            # Level up notification
+            if level_up:
+                embed = EmbedFactory.level_up(user_id, f"User {user_id}", new_level, new_xp)
+                await self.send_message(channel_id, embed=embed)
+                logger.info(f"User {user_id} leveled up to {new_level}")
 
-    # NOTE: /rank and /leaderboard commands have been moved to games.py as PUBLIC commands
+        except Exception as e:
+            logger.error(f"On message XP error: {e}")
 
-    @app_commands.command(name="setlevel", description="Set user's level (Admin)")
-    @app_commands.describe(
-        user="User to modify",
-        level="New level"
-    )
-    @is_admin()
-    async def set_level(
-        self,
-        interaction: discord.Interaction,
-        user: discord.Member,
-        level: int
-    ):
-        """Set user level"""
-        if level < 0:
-            await interaction.response.send_message(
-                embed=EmbedFactory.error("Invalid Level", "Level must be 0 or greater"),
-                ephemeral=True
+    @app_command(name="rank", description="View your rank")
+    async def rank(self, interaction: Dict[str, Any], user_id: Optional[str] = None):
+        """View rank card (Stoat format)"""
+        channel_id = interaction.get("channel_id")
+        guild_id = interaction.get("server_id") or interaction.get("guild_id")
+        target_id = user_id or interaction.get("user_id")
+
+        try:
+            user_data = await self.db.get_user(target_id, guild_id)
+            if not user_data:
+                await self.send_embed(
+                    channel_id,
+                    "No Data",
+                    f"<@{target_id}> has no rank data yet",
+                    color=EmbedColor.INFO
+                )
+                return
+
+            level = user_data.get("level", 0)
+            xp = user_data.get("xp", 0)
+
+            # Get rank (count users with higher XP)
+            all_users = await self.db.db.users.find({"guild_id": guild_id}).to_list(length=None)
+            rank = sum(1 for u in all_users if u.get("xp", 0) > xp) + 1
+
+            next_level_xp = (level + 1) * 100
+
+            embed = EmbedFactory.rank_card(
+                target_id,
+                f"User {target_id}",
+                level,
+                xp,
+                rank,
+                next_level_xp
             )
-            return
 
-        xp = sum(calculate_level_xp(i) for i in range(1, level + 1))
+            await self.send_message(channel_id, embed=embed)
 
-        await self.db.update_user(user.id, interaction.guild.id, {
-            'level': level,
-            'xp': xp
-        })
+        except Exception as e:
+            logger.error(f"Rank command error: {e}")
+            await self.send_embed(channel_id, "Error", str(e), color=EmbedColor.ERROR)
 
-        embed = EmbedFactory.success(
-            "Level Set",
-            f"Set {user.mention}'s level to **{level}**"
-        )
-        await interaction.response.send_message(embed=embed)
-        logger.info(f"{interaction.user} set {user}'s level to {level}")
+    @app_command(name="leaderboard", description="View level leaderboard")
+    async def leaderboard(self, interaction: Dict[str, Any]):
+        """View level leaderboard (Stoat)"""
+        channel_id = interaction.get("channel_id")
+        guild_id = interaction.get("server_id") or interaction.get("guild_id")
 
-    @app_commands.command(name="resetlevels", description="Reset all levels (Admin)")
-    @is_admin()
-    async def reset_levels(self, interaction: discord.Interaction):
-        """Reset all levels in guild"""
-        # This would require a bulk update - implementing basic version
-        await interaction.response.send_message(
-            embed=EmbedFactory.warning(
-                "Reset Levels",
-                "This feature will reset all user levels. This is a destructive action.\n\n"
-                "To implement: Use database bulk operations to reset all users in this guild."
-            ),
-            ephemeral=True
-        )
+        try:
+            top_users = await self.db.get_leaderboard(guild_id, limit=10)
+
+            embed = EmbedFactory.leaderboard(
+                "Level Leaderboard",
+                top_users,
+                field_name="level",
+                color=EmbedColor.LEVELING
+            )
+
+            await self.send_message(channel_id, embed=embed)
+
+        except Exception as e:
+            logger.error(f"Leaderboard error: {e}")
+            await self.send_embed(channel_id, "Error", str(e), color=EmbedColor.ERROR)
 
 
-async def setup(bot: commands.Bot):
+async def setup(adapter, db, config):
     """Setup function for cog loading"""
-    await bot.add_cog(Leveling(bot, bot.db, bot.config))
+    return Leveling(adapter, db, config)

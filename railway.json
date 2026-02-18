@@ -1,13 +1,41 @@
 {
-  "$schema": "https://railway.app/railway.schema.json",
-  "build": {
-    "builder": "NIXPACKS"
+  "name": "Logiq Stoat Bot",
+  "description": "Feature-rich Stoat bot with moderation, economy, leveling, and more",
+  "keywords": [
+    "stoat",
+    "bot",
+    "moderation",
+    "economy",
+    "open-source"
+  ],
+  "repo": "https://github.com/yourusername/Logiq",
+  "buildCommand": "pip install -r requirements.txt",
+  "startCommand": "python main.py",
+  "env": {
+    "STOAT_BOT_TOKEN": {
+      "description": "Stoat bot token from https://stoat.chat/developers",
+      "required": true
+    },
+    "MONGODB_URI": {
+      "description": "MongoDB Atlas or self-hosted connection string",
+      "required": true
+    },
+    "ENVIRONMENT": {
+      "description": "Environment: development, staging, or production",
+      "value": "production"
+    },
+    "OPENAI_API_KEY": {
+      "description": "OpenAI API key (optional, for AI chat)",
+      "required": false
+    },
+    "LOG_LEVEL": {
+      "description": "Log level (DEBUG, INFO, WARNING, ERROR)",
+      "value": "INFO"
+    }
   },
-  "deploy": {
-    "startCommand": "python main.py",
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10,
-    "healthcheckPath": null,
-    "healthcheckTimeout": null
+  "plugins": {
+    "mongodb": {
+      "plan": "free"
+    }
   }
 }
