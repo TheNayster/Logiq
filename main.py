@@ -119,9 +119,12 @@ class Logiq:
         self.logger.info(f"✅ Loaded {len(self.loaded_cogs)}/{len(cog_files)} cogs")
 
     async def run_forever(self):
-        """Keep the process alive until cancelled"""
+        """Keep the process alive — drives the WebSocket event loop"""
         self.logger.info("🎮 Bot is running (Stoat)")
-        await asyncio.Event().wait()
+        if self.adapter and hasattr(self.adapter, 'listen'):
+            await self.adapter.listen()
+        else:
+            await asyncio.Event().wait()
 
     async def close(self):
         """Cleanup when bot is shutting down"""

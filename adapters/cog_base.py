@@ -3,6 +3,7 @@ Adapted Cog Base - Stoat-only cog pattern
 (NO Discord.py inheritance)
 """
 
+import inspect
 import logging
 from typing import Dict, Any, Optional, Callable, List
 from abc import ABC
@@ -19,6 +20,16 @@ class AdaptedCog(ABC):
         self.config = config
         self._commands: Dict[str, Callable] = {}
         self._listeners: Dict[str, List[Callable]] = {}
+
+        # Auto-register methods decorated with @app_command or @listener
+        for _, method in inspect.getmembers(self, predicate=inspect.ismethod):
+            if hasattr(method, '_command_name'):
+                self._commands[method._command_name.lower()] = method
+            if hasattr(method, '_event_name'):
+                event = method._event_name
+                if event not in self._listeners:
+                    self._listeners[event] = []
+                self._listeners[event].append(method)
 
     def add_command(self, name: str, handler: Callable) -> None:
         """Register command handler"""
@@ -64,11 +75,12 @@ class AdaptedCog(ABC):
         return await self.send_message(channel_id, embed=embed)
 
 
-def app_command(name: str, description: str = ""):
+def app_command(name: str, description: str = "", usage: str = ""):
     """Decorator for application commands (Stoat-only)"""
     def decorator(func):
         func._command_name = name
         func._description = description
+        func._usage = usage
         return func
     return decorator
 

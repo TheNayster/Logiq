@@ -4,6 +4,7 @@ Monitor Twitch, YouTube, Twitter/X for new content
 """
 
 import logging
+import os
 import asyncio
 import aiohttp
 from typing import Optional, Dict, Any
@@ -122,7 +123,7 @@ class SocialAlerts(AdaptedCog):
         except Exception as e:
             logger.error(f"Twitter check error: {e}")
 
-    @app_command(name="alert-add", description="Add social media alert (Admin)")
+    @app_command(name="alert-add", description="Add social media alert (Admin)", usage="!alert-add <platform> <account> <channel_id>  — e.g. !alert-add twitch shroud 01KHXXXXXXXX  (platforms: twitch, youtube, twitter)")
     async def alert_add(
         self,
         interaction: Dict[str, Any],
@@ -168,6 +169,9 @@ class SocialAlerts(AdaptedCog):
 
     async def _check_admin(self, guild_id: str, user_id: str) -> bool:
         """Check if user is admin"""
+        owner_id = os.getenv("BOT_OWNER_ID")
+        if owner_id and user_id == owner_id:
+            return True
         try:
             member = await self.db.get_member(guild_id, user_id)
             return member and member.get("is_admin", False)

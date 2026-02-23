@@ -22,7 +22,7 @@ class Moderation(AdaptedCog):
         super().__init__(adapter, db, config)
         self.module_config = config.get('modules', {}).get('moderation', {})
 
-    @app_command(name="warn", description="Warn a user")
+    @app_command(name="warn", description="Warn a user", usage="!warn <user_id> [reason]  — e.g. !warn 01KHXXXXXXXX Spamming")
     async def warn(
         self,
         interaction: Dict[str, Any],
@@ -70,7 +70,7 @@ class Moderation(AdaptedCog):
             logger.error(f"Warn error: {e}", exc_info=True)
             await self.send_embed(channel_id, "Error", str(e), color=EmbedColor.ERROR)
 
-    @app_command(name="kick", description="Kick a user")
+    @app_command(name="kick", description="Kick a user", usage="!kick <user_id> [reason]  — e.g. !kick 01KHXXXXXXXX Breaking rules")
     async def kick(
         self,
         interaction: Dict[str, Any],
@@ -117,7 +117,7 @@ class Moderation(AdaptedCog):
             logger.error(f"Kick error: {e}", exc_info=True)
             await self.send_embed(channel_id, "Error", str(e), color=EmbedColor.ERROR)
 
-    @app_command(name="ban", description="Ban a user")
+    @app_command(name="ban", description="Ban a user", usage="!ban <user_id> [reason] [delete_days]  — e.g. !ban 01KHXXXXXXXX Harassment 7")
     async def ban(
         self,
         interaction: Dict[str, Any],
@@ -166,7 +166,7 @@ class Moderation(AdaptedCog):
             logger.error(f"Ban error: {e}", exc_info=True)
             await self.send_embed(channel_id, "Error", str(e), color=EmbedColor.ERROR)
 
-    @app_command(name="clear", description="Clear messages in channel")
+    @app_command(name="clear", description="Clear messages in channel", usage="!clear <amount> [user_id]  — e.g. !clear 10  or  !clear 5 01KHXXXXXXXX")
     async def clear(
         self,
         interaction: Dict[str, Any],

@@ -4,6 +4,7 @@ User verification system without Discord.py
 """
 
 import logging
+import os
 from typing import Dict, Any, Optional
 
 from adapters.cog_base import AdaptedCog, app_command, listener
@@ -20,7 +21,7 @@ class Verification(AdaptedCog):
         super().__init__(adapter, db, config)
         self.module_config = config.get('modules', {}).get('verification', {})
 
-    @app_command(name="setup-verification", description="Setup verification system (Admin)")
+    @app_command(name="setup-verification", description="Setup verification system (Admin)", usage="!setup-verification <role_id> <welcome_channel_id> [method] [verify_channel_id]  — e.g. !setup-verification 01KHXXXXXXXX 01KHXXXXXXXX dm  (method: dm or channel)")
     async def setup_verification(
         self,
         interaction: Dict[str, Any],
@@ -173,6 +174,9 @@ class Verification(AdaptedCog):
 
     async def _check_admin(self, guild_id: str, user_id: str) -> bool:
         """Check if user is admin"""
+        owner_id = os.getenv("BOT_OWNER_ID")
+        if owner_id and user_id == owner_id:
+            return True
         try:
             member = await self.db.get_member(guild_id, user_id)
             return member and member.get("is_admin", False)

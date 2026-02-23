@@ -4,6 +4,7 @@ Giveaway system with text-based entry
 """
 
 import logging
+import os
 import random
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -24,7 +25,7 @@ class Giveaways(AdaptedCog):
         self.module_config = config.get('modules', {}).get('giveaways', {})
         self.active_giveaways: Dict[str, list] = {}  # giveaway_id: [user_ids]
 
-    @app_command(name="giveaway", description="Start a giveaway (Admin)")
+    @app_command(name="giveaway", description="Start a giveaway (Admin)", usage="!giveaway <prize> <duration> [winners]  — e.g. !giveaway Nitro 1h 3  (duration: 30s, 5m, 1h, 2d)")
     async def start_giveaway(
         self,
         interaction: Dict[str, Any],
@@ -97,7 +98,7 @@ class Giveaways(AdaptedCog):
 
         self.active_giveaways[giveaway_id] = []
 
-    @app_command(name="end-giveaway", description="End a giveaway early (Admin)")
+    @app_command(name="end-giveaway", description="End a giveaway early (Admin)", usage="!end-giveaway <giveaway_id>  — the ID was shown when the giveaway was started")
     async def end_giveaway(self, interaction: Dict[str, Any], giveaway_id: str):
         """End a giveaway"""
         guild_id = interaction.get("server_id") or interaction.get("guild_id")
@@ -160,6 +161,9 @@ class Giveaways(AdaptedCog):
 
     async def _check_admin(self, guild_id: str, user_id: str) -> bool:
         """Check if user is admin"""
+        owner_id = os.getenv("BOT_OWNER_ID")
+        if owner_id and user_id == owner_id:
+            return True
         try:
             member = await self.db.get_member(guild_id, user_id)
             return member and member.get("is_admin", False)

@@ -9,6 +9,26 @@ from typing import Dict, Any
 import sys
 
 
+class _SafeStreamHandler(logging.StreamHandler):
+    """StreamHandler that won't crash on emoji in Windows CP1252 terminals.
+
+    If a UnicodeEncodeError occurs the record is re-emitted with non-ASCII
+    characters replaced by '?' so the message still appears in the terminal.
+    """
+    def emit(self, record):
+        try:
+            super().emit(record)
+        except UnicodeEncodeError:
+            try:
+                record = logging.makeLogRecord(record.__dict__)
+                encoding = getattr(self.stream, 'encoding', 'ascii') or 'ascii'
+                record.msg = str(record.msg).encode(encoding, errors='replace').decode('ascii')
+                record.args = None
+                super().emit(record)
+            except Exception:
+                self.handleError(record)
+
+
 class BotLogger:
     """Custom logger for Stoat bot"""
 
@@ -22,14 +42,9 @@ class BotLogger:
         level = os.getenv('LOG_LEVEL', self.config.get('level', 'INFO'))
         logger.setLevel(getattr(logging, level))
 
-        # Console handler
-        # Use UTF-8 stdout on Windows so emojis don't crash logging
-        try:
-            sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:
-            pass
-
-        console_handler = logging.StreamHandler(sys.stdout)
+        # Console handler — SafeStreamHandler replaces un-encodable chars with '?'
+        # so emoji log lines never crash on Windows CP1252 terminals
+        console_handler = _SafeStreamHandler(sys.stdout)
         console_handler.setLevel(getattr(logging, level))
 
         # Formatter

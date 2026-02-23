@@ -22,7 +22,7 @@ class Tickets(AdaptedCog):
         self.module_config = config.get('modules', {}).get('tickets', {})
         self.max_open = self.module_config.get('max_open_per_user', 3)
 
-    @app_command(name="ticket-create", description="Create a support ticket")
+    @app_command(name="ticket-create", description="Create a support ticket", usage="!ticket-create <topic>  — e.g. !ticket-create Need help with my account")
     async def ticket_create(self, interaction: Dict[str, Any], topic: str):
         """Create support ticket (Stoat)"""
         channel_id = interaction.get("channel_id")
@@ -63,7 +63,7 @@ class Tickets(AdaptedCog):
             logger.error(f"Ticket create error: {e}")
             await self.send_embed(channel_id, "Error", str(e), color=EmbedColor.ERROR)
 
-    @app_command(name="ticket-close", description="Close your support ticket")
+    @app_command(name="ticket-close", description="Close your support ticket", usage="!ticket-close <ticket_id>  — get the ID from !ticket-list")
     async def ticket_close(self, interaction: Dict[str, Any], ticket_id: str):
         """Close support ticket (Stoat)"""
         channel_id = interaction.get("channel_id")

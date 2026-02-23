@@ -4,6 +4,7 @@ Virtual currency system with shop and gambling
 """
 
 import logging
+import os
 import random
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -92,7 +93,7 @@ class Economy(AdaptedCog):
             logger.error(f"Balance error: {e}")
             await self.send_embed(channel_id, "Error", str(e), color=EmbedColor.ERROR)
 
-    @app_command(name="give", description="Give currency to another user (Admin)")
+    @app_command(name="give", description="Give currency to another user (Admin)", usage="!give <user_id> <amount>  — e.g. !give 01KHXXXXXXXX 500")
     async def give(self, interaction: Dict[str, Any], user_id: str, amount: int):
         """Give currency to user"""
         channel_id = interaction.get("channel_id")
@@ -155,6 +156,9 @@ class Economy(AdaptedCog):
 
     async def _check_admin(self, guild_id: str, user_id: str) -> bool:
         """Check if user is admin"""
+        owner_id = os.getenv("BOT_OWNER_ID")
+        if owner_id and user_id == owner_id:
+            return True
         try:
             member = await self.db.get_member(guild_id, user_id)
             return member and member.get("is_admin", False)

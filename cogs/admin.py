@@ -4,6 +4,7 @@ Admin management and bot info
 """
 
 import logging
+import os
 import sys
 from typing import Dict, Any
 from datetime import datetime, timedelta
@@ -113,8 +114,24 @@ class Admin(AdaptedCog):
             color=EmbedColor.SUCCESS
         )
 
+    @app_command(name="myid", description="Show your user ID")
+    async def myid(self, interaction: Dict[str, Any]):
+        """Echo the caller's Stoat user ID back into chat"""
+        channel_id = interaction.get("channel_id")
+        user_id = interaction.get("user_id")
+        await self.send_embed(
+            channel_id,
+            "Your User ID",
+            f"Your Stoat user ID is:\n`{user_id}`\n\nAdd this to your `.env` as `BOT_OWNER_ID={user_id}`",
+            color=EmbedColor.INFO
+        )
+
     async def _check_admin(self, guild_id: str, user_id: str) -> bool:
         """Check if user is admin"""
+        # Bot owner always passes, regardless of DB state
+        owner_id = os.getenv("BOT_OWNER_ID")
+        if owner_id and user_id == owner_id:
+            return True
         try:
             member = await self.db.get_member(guild_id, user_id)
             return member and member.get("is_admin", False)
