@@ -7,7 +7,8 @@ import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
-from motor.motor_asyncio import AsyncClient, AsyncDatabase
+from motor.motor_asyncio import AsyncIOMotorClient
+from motor.core import AgnosticDatabase
 import pymongo
 
 logger = logging.getLogger(__name__)
@@ -20,13 +21,13 @@ class DatabaseManager:
         self.uri = uri
         self.database_name = database_name
         self.pool_size = pool_size
-        self.client: Optional[AsyncClient] = None
+        self.client: Optional[AsyncIOMotorClient] = None
         self.db: Optional[AsyncDatabase] = None
 
     async def connect(self) -> None:
         """Establish database connection"""
         try:
-            self.client = AsyncClient(
+            self.client = AsyncIOMotorClient(
                 self.uri,
                 maxPoolSize=self.pool_size,
                 minPoolSize=1

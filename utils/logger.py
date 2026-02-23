@@ -3,8 +3,10 @@ Logger Configuration - Stoat bot logger
 """
 
 import logging
+from logging import config
 import os
 from typing import Dict, Any
+import sys
 
 
 class BotLogger:
@@ -21,7 +23,13 @@ class BotLogger:
         logger.setLevel(getattr(logging, level))
 
         # Console handler
-        console_handler = logging.StreamHandler()
+        # Use UTF-8 stdout on Windows so emojis don't crash logging
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+        console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(getattr(logging, level))
 
         # Formatter
@@ -43,20 +51,27 @@ class BotLogger:
 
         return logger
 
-    def debug(self, msg):
-        self.logger.debug(msg)
+    def debug(self, msg, *args, **kwargs):
+        self.logger.debug(msg, *args, **kwargs)
 
-    def info(self, msg):
-        self.logger.info(msg)
+    def info(self, msg, *args, **kwargs):
+        self.logger.info(msg, *args, **kwargs)
 
-    def warning(self, msg):
-        self.logger.warning(msg)
+    def warning(self, msg, *args, **kwargs):
+        self.logger.warning(msg, *args, **kwargs)
 
-    def error(self, msg):
-        self.logger.error(msg)
+    def error(self, msg, *args, **kwargs):
+        self.logger.error(msg, *args, **kwargs)
 
-    def critical(self, msg):
-        self.logger.critical(msg)
+    def critical(self, msg, *args, **kwargs):
+        self.logger.critical(msg, *args, **kwargs)
 
     def __getattr__(self, name):
         return getattr(self.logger, name)
+    
+def setup_logger(config=None):
+    """
+    Backwards-compatible helper expected by utils.__init__.
+    Returns the configured logger instance.
+    """
+    return BotLogger(config).logger

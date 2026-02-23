@@ -19,6 +19,7 @@ from healthcheck import start_health_check
 from database.db_manager import DatabaseManager
 from utils.logger import BotLogger
 from utils.embeds import EmbedColor
+from typing import Optional
 
 # Load environment variables
 load_dotenv()
@@ -71,6 +72,14 @@ class Logiq:
             try:
                 await self.adapter.connect(token)
                 self.logger.info("✅ Connected to Stoat.chat")
+                # ---- quick Stoat smoke test (posts a message in Stoat) ----
+                test_channel_id = os.getenv("STOAT_TEST_CHANNEL_ID")
+                if test_channel_id:
+                    await self.adapter.send_message(
+                        channel_id=test_channel_id,
+                        content="Logiq is online (Stoat test message)."
+                    )
+                # ----------------------------------------------------------
             except Exception as e:
                 self.logger.error(f"❌ Stoat connection failed: {e}", exc_info=True)
                 sys.exit(1)

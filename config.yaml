@@ -9,8 +9,8 @@ bot:
 
 # ========== STOAT API (ONLY) ==========
 stoat:
-  api_base: "https://stoat.chat/api"
-  ws_url: "wss://stoat.chat/socket"
+  api_base: "https://api.revolt.chat"
+  ws_url: "wss://ws.revolt.chat"
   timeout: 30
 
 # Database Configuration

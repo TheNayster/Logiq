@@ -39,10 +39,10 @@ class StoatAdapter(AdapterInterface):
         self.session = aiohttp.ClientSession()
 
         try:
-            # Test connection to Stoat API
-            headers = {"Authorization": f"Bearer {token}"}
+            headers = {"X-Bot-Token": token}
+
             async with self.session.get(
-                f"{self.api_base}/auth/me",
+                f"{self.api_base}/users/@me",
                 headers=headers,
                 timeout=aiohttp.ClientTimeout(total=self.timeout)
             ) as resp:
@@ -51,7 +51,8 @@ class StoatAdapter(AdapterInterface):
                     logger.info(f"✅ Connected to Stoat as: {data.get('username', 'Unknown')}")
                     self._connected = True
                 else:
-                    raise ConnectionError(f"Stoat API returned {resp.status}")
+                    text = await resp.text()
+                    raise ConnectionError(f"Stoat API returned {resp.status}: {text}")
 
         except Exception as e:
             logger.error(f"❌ Failed to connect to Stoat: {e}")
@@ -85,7 +86,7 @@ class StoatAdapter(AdapterInterface):
             if embed:
                 payload["embed"] = embed
 
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"X-Bot-Token": self.token}
 
             async with self.session.post(
                 f"{self.api_base}/channels/{channel_id}/messages",
@@ -122,7 +123,7 @@ class StoatAdapter(AdapterInterface):
         try:
             # Create DM channel first
             payload = {"recipient_id": user_id}
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"X-Bot-Token": self.token}
 
             async with self.session.post(
                 f"{self.api_base}/users/@me/channels",
@@ -174,7 +175,7 @@ class StoatAdapter(AdapterInterface):
             return []
 
         try:
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"X-Bot-Token": self.token}
             members = []
 
             async with self.session.get(
@@ -198,7 +199,7 @@ class StoatAdapter(AdapterInterface):
             return False
 
         try:
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"X-Bot-Token": self.token}
 
             async with self.session.put(
                 f"{self.api_base}/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
@@ -220,7 +221,7 @@ class StoatAdapter(AdapterInterface):
             return False
 
         try:
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"X-Bot-Token": self.token}
 
             async with self.session.delete(
                 f"{self.api_base}/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
@@ -246,7 +247,7 @@ class StoatAdapter(AdapterInterface):
             return []
 
         try:
-            headers = {"Authorization": f"Bearer {self.token}"}
+            headers = {"X-Bot-Token": self.token}
 
             async with self.session.get(
                 f"{self.api_base}/channels/{channel_id}/messages",
