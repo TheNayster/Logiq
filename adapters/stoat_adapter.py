@@ -13,6 +13,14 @@ from typing import Dict, Any, Optional, List, Callable
 from datetime import datetime
 
 from adapters.adapter_interface import AdapterInterface
+import database.supabase as supa
+from utils.compliance import (
+    check_content_aup,
+    contains_pii,
+    redact_pii,
+    command_limiter,
+    message_limiter,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -243,6 +251,54 @@ class StoatAdapter(AdapterInterface):
             logger.error(f"Remove role error: {e}")
             return False
 
+    def _coerce_args(self, handler, raw_args: list) -> dict:
+        """
+        Map a list of raw string args onto the handler's parameter names,
+        coercing types based on annotations (int, float, Optional[str], etc.).
+        The first param is always 'interaction' — skip it.
+        The last param may be a variadic catch-all for multi-word strings.
+        """
+        import inspect
+        sig    = inspect.signature(handler)
+        params = [p for name, p in sig.parameters.items() if name != "interaction"]
+        result = {}
+
+        for i, param in enumerate(params):
+            if i >= len(raw_args):
+                if param.default is inspect.Parameter.empty:
+                    break   # caller will get a missing-arg TypeError → usage hint
+                break       # rest have defaults, stop
+
+            # last param: join any remaining tokens so reasons/messages work
+            if i == len(params) - 1 and len(raw_args) > len(params):
+                raw = " ".join(raw_args[i:])
+            else:
+                raw = raw_args[i]
+
+            ann = param.annotation
+            # unwrap Optional[X] → X
+            origin = getattr(ann, "__origin__", None)
+            if origin is type(None):
+                ann = str
+            elif origin is not None:
+                args_ann = getattr(ann, "__args__", ())
+                non_none = [a for a in args_ann if a is not type(None)]
+                ann = non_none[0] if non_none else str
+
+            try:
+                if ann is int:
+                    result[param.name] = int(raw)
+                elif ann is float:
+                    result[param.name] = float(raw)
+                elif ann is bool:
+                    result[param.name] = raw.lower() in ("true", "yes", "1", "on")
+                else:
+                    result[param.name] = raw
+            except (ValueError, TypeError):
+                result[param.name] = raw   # let the handler validate
+
+        return result
+
     async def listen(self) -> None:
         """Connect to the Stoat WebSocket and dispatch incoming events indefinitely.
 
@@ -287,6 +343,49 @@ class StoatAdapter(AdapterInterface):
                                 f"{len(self._channel_server_map)} channels cached"
                             )
 
+                        # ── Supabase lifecycle events ──────────────────────
+                        elif event_type == "ServerCreate":
+                            # Bot added to a new server
+                            srv = event.get("server", {})
+                            await supa.on_server_add(
+                                server_id=srv.get("_id", ""),
+                                name=srv.get("name", ""),
+                                owner_id=srv.get("owner", ""),
+                            )
+
+                        elif event_type == "ServerDelete":
+                            srv_id = event.get("id", "")
+                            if srv_id:
+                                await supa.on_server_remove(srv_id)
+
+                        elif event_type == "ServerMemberJoin":
+                            await supa.on_member_join(
+                                server_id=event.get("id", ""),
+                                user_id=event.get("user", ""),
+                            )
+
+                        elif event_type == "ServerMemberLeave":
+                            await supa.on_member_leave(
+                                server_id=event.get("id", ""),
+                                user_id=event.get("user", ""),
+                            )
+
+                        elif event_type == "ServerMemberUpdate":
+                            # Catch ban/unban via member update flags if available
+                            data = event.get("data", {})
+                            if data.get("banned") is True:
+                                await supa.on_member_ban(
+                                    server_id=event.get("id", ""),
+                                    user_id=event.get("user_id", ""),
+                                    moderator_id="system",
+                                )
+                            elif data.get("banned") is False:
+                                await supa.on_member_unban(
+                                    server_id=event.get("id", ""),
+                                    user_id=event.get("user_id", ""),
+                                    moderator_id="system",
+                                )
+
                         elif event_type == "Message":
                             await self._dispatch_message(event)
 
@@ -321,12 +420,30 @@ class StoatAdapter(AdapterInterface):
         author_id: str = event.get("author", "")
         mentions: list = event.get("mentions") or []
 
-        logger.info(f"📨 Message received — author={author_id} channel={channel_id} content={content!r}")
-
         # Never respond to the bot's own messages
         if author_id == self.bot_id:
             logger.info("   ↩ Ignoring own message")
             return
+
+        # ── AUP Compliance checks ──────────────────────────────────────────
+        # 1. Rate limit per user (AUP: no DoS / API abuse)
+        if not message_limiter.is_allowed(author_id):
+            logger.warning(f"   ⚠ Rate limit hit for user {author_id} — ignoring message")
+            return
+
+        # 2. Content AUP check — log violations, don't process prohibited content
+        aup_violation = check_content_aup(content)
+        if aup_violation:
+            logger.warning(f"   🚫 AUP violation from {author_id}: {aup_violation}")
+            await self.send_message(
+                channel_id,
+                content="⚠️ Your message was blocked — it appears to violate Stoat's Acceptable Use Policy."
+            )
+            return
+
+        # 3. PII guard — safe-log only, never store raw PII in logs
+        safe_content = redact_pii(content)
+        logger.info(f"📨 Message — author={author_id} channel={channel_id} content={safe_content!r}")
 
         server_id = self._channel_server_map.get(channel_id)
 
@@ -349,6 +466,16 @@ class StoatAdapter(AdapterInterface):
             parts = content[len(prefix):].split()
             if parts:
                 cmd_name = parts[0].lower() if case_insensitive else parts[0]
+
+                # AUP: per-user command rate limit
+                if not command_limiter.is_allowed(author_id):
+                    wait = command_limiter.time_until_reset(author_id)
+                    await self.send_message(
+                        channel_id,
+                        content=f"⏳ You're sending commands too fast. Please wait {wait:.0f}s."
+                    )
+                    return
+
                 interaction["command"] = cmd_name
                 interaction["args"] = parts[1:]
 
@@ -356,9 +483,10 @@ class StoatAdapter(AdapterInterface):
                 if handler:
                     logger.info(f"   ▶ Dispatching command: {cmd_name} args={parts[1:]}")
                     try:
-                        await handler(interaction, *parts[1:])
+                        coerced = self._coerce_args(handler, parts[1:])
+                        await handler(interaction, **coerced)
                     except TypeError as e:
-                        if "argument" in str(e):
+                        if "argument" in str(e) or "required" in str(e):
                             usage = getattr(handler, '_usage', None)
                             hint = f"Usage: `{usage}`" if usage else f"Missing required arguments for `!{cmd_name}`."
                             await self.send_message(channel_id, content=hint)

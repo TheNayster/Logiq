@@ -1,8 +1,16 @@
 aiohttp>=3.8.4
 httpx>=0.24.1
 websockets>=11.0.3
+
+# ── Supabase (replaces MongoDB) ────────────────────────────────────────────────
+supabase>=2.4.0          # async client  (create_async_client)
+postgrest>=0.16.0        # included transitively, pinned for safety
+gotrue>=2.4.0            # auth helpers
+
+# ── Legacy MongoDB (remove after migration) ────────────────────────────────────
 motor>=3.7.0
 pymongo>=4.6.1
+
 PyYAML==6.0.1
 pillow==11.0.0
 fastapi==0.109.0
@@ -21,5 +29,3 @@ flake8==6.1.0
 isort==5.13.2
 coverage==7.3.2
 
-# NOTE: discord.py REMOVED - Stoat-only bot
-# NOTE: PyNaCl REMOVED - no voice support needed

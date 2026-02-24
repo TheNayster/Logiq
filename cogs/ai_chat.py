@@ -9,6 +9,7 @@ import aiohttp
 
 from adapters.cog_base import AdaptedCog, app_command
 from utils.embeds import EmbedFactory, EmbedColor
+from utils.compliance import contains_pii, redact_pii
 from database.db_manager import DatabaseManager
 
 logger = logging.getLogger(__name__)
@@ -69,6 +70,17 @@ class AIChat(AdaptedCog):
         try:
             if user_id not in self.conversation_history:
                 self.conversation_history[user_id] = []
+
+            # AUP: redact any PII before storing in memory or sending to AI
+            if contains_pii(question):
+                await self.send_embed(
+                    channel_id,
+                    "⚠️ Privacy Notice",
+                    "Your message appears to contain personal information (email, phone, etc.). "
+                    "Please don't share PII with the bot. Message not processed.",
+                    color=EmbedColor.WARNING
+                )
+                return
 
             self.conversation_history[user_id].append({
                 "role": "user",

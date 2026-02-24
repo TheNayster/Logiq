@@ -5,12 +5,17 @@ Constants and configuration values for Logiq (Stoat-only)
 from typing import Dict, Any
 
 # Bot Information (Stoat-only)
-BOT_NAME = "Logiq"
+BOT_NAME = "StoatMod"
 BOT_VERSION = "1.0.0"
-BOT_DESCRIPTION = "Feature-rich Stoat.chat bot for community management"
+BOT_DESCRIPTION = (
+    "StoatMod is a community moderation and management bot for Stoat.chat. "
+    "Features: automated moderation, AI automod, custom commands, XP leveling, "
+    "welcome messages, audit logs, tickets, and giveaways. "
+    "Compliant with Stoat's Acceptable Use Policy."
+)
 BOT_PLATFORM = "Stoat.chat"
 BOT_GITHUB = "https://github.com/yourusername/Logiq"
-BOT_DOCS = "https://developers.stoat.chat/"
+BOT_DOCS = "https://stoatmod.vercel.app"
 
 # Emoji Constants
 EMOJIS = {
@@ -175,7 +180,8 @@ STATUS_MESSAGES = [
 STOAT_CONSTANTS = {
     "api_base": "https://stoat.chat/api",
     "ws_url": "wss://stoat.chat/socket",
-    "invite_base": "https://stoat.chat/invite",
+    "bot_invite": "https://stoat.chat/bot/01KHQGBV9WEQYRBKXWHHENES43",
     "developer_portal": "https://stoat.chat/developers",
     "community_url": "https://stoat.chat/community",
+    "aup_url": "https://stoat.chat/legal/community-guidelines",
 }

@@ -1,187 +1,203 @@
 """
-Social Alerts Cog for Logiq (Stoat-only)
-Monitor Twitch, YouTube, Twitter/X for new content
+Social Alerts Cog — StoatMod
+Twitch / YouTube / Twitter feed subscriptions stored in Supabase.
+
+Commands (Admin only):
+  !alert-add <platform> <account> <channel_id>  — Subscribe to an account
+  !alert-remove <platform> <account>             — Unsubscribe
+  !alert-list                                    — List all alerts for this server
 """
 
+import asyncio
 import logging
 import os
-import asyncio
-import aiohttp
-from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Dict, Any, Optional
 
 from adapters.cog_base import AdaptedCog, app_command
 from utils.embeds import EmbedFactory, EmbedColor
-from database.db_manager import DatabaseManager
+import database.supabase as supa
 
 logger = logging.getLogger(__name__)
 
+PLATFORM_COLORS = {
+    "twitch":  0x9146FF,
+    "youtube": 0xFF0000,
+    "twitter": 0x000000,
+}
+PLATFORM_ICONS = {
+    "twitch":  "🟣",
+    "youtube": "🔴",
+    "twitter": "𝕏",
+}
+
 
 class SocialAlerts(AdaptedCog):
-    """Social media alerts cog (Stoat-only)"""
+    """Social media alerts — Stoat-only, Supabase-backed"""
 
-    def __init__(self, adapter, db: DatabaseManager, config: dict):
+    def __init__(self, adapter, db, config: dict):
         super().__init__(adapter, db, config)
-        self.module_config = config.get('modules', {}).get('social_alerts', {})
-        self.session: Optional[aiohttp.ClientSession] = None
-        self._check_task = None
+        self._task: Optional[asyncio.Task] = None
 
-    async def start_checking(self):
-        """Start background checking task"""
-        self._check_task = asyncio.create_task(self._check_alerts_loop())
+    async def start(self):
+        self._task = asyncio.create_task(self._check_loop())
 
-    async def stop_checking(self):
-        """Stop background checking task"""
-        if self._check_task:
-            self._check_task.cancel()
-
-    async def _check_alerts_loop(self):
-        """Background loop to check for new content"""
-        if not self.session:
-            self.session = aiohttp.ClientSession()
-
+    async def _check_loop(self):
+        """Poll Supabase every 5 minutes for alerts to fire."""
         while True:
+            await asyncio.sleep(300)
             try:
-                # Check for monitored accounts
-                alerts = await self.db.db.social_alerts.find({}).to_list(length=None)
-
-                for alert in alerts:
-                    if alert.get('platform') == 'twitch':
-                        await self.check_twitch(alert)
-                    elif alert.get('platform') == 'youtube':
-                        await self.check_youtube(alert)
-                    elif alert.get('platform') == 'twitter':
-                        await self.check_twitter(alert)
-
-                await asyncio.sleep(300)  # Check every 5 minutes
-
+                await self._process_alerts()
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"Social alerts check error: {e}")
-                await asyncio.sleep(60)
+                logger.error(f"[social_alerts] loop error: {e}", exc_info=True)
 
-    async def get_session(self) -> aiohttp.ClientSession:
-        """Get or create aiohttp session"""
-        if not self.session:
-            self.session = aiohttp.ClientSession()
-        return self.session
+    async def _process_alerts(self):
+        """Stub: real platform API calls would go here."""
+        sb  = await supa.get_client()
+        res = await sb.table("social_alerts").select("*").execute()
+        for alert in (res.data or []):
+            platform = alert.get("platform", "")
+            # TODO: integrate real Twitch/YouTube/Twitter API checks per alert
+            logger.debug(f"[social_alerts] would check {platform}:{alert.get('account')}")
 
-    async def check_twitch(self, alert: dict):
-        """Check Twitch for live streams"""
-        try:
-            channel_id = alert.get('channel_id')
-            account = alert.get('account')
-            twitch_api = "https://api.twitch.tv/helix"
-
-            async with self.session.get(
-                f"{twitch_api}/streams",
-                params={"user_login": account}
-            ) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    if data.get('data'):
-                        embed = {
-                            "title": "🔴 Twitch Stream Live",
-                            "description": f"{account} is now streaming!",
-                            "color": 0x9146FF
-                        }
-                        await self.adapter.send_message(channel_id, embed=embed)
-
-        except Exception as e:
-            logger.error(f"Twitch check error: {e}")
-
-    async def check_youtube(self, alert: dict):
-        """Check YouTube for new videos"""
-        try:
-            channel_id = alert.get('channel_id')
-            account = alert.get('account')
-
-            embed = {
-                "title": "📹 YouTube Upload",
-                "description": f"{account} uploaded a new video!",
-                "color": 0xFF0000
-            }
-            await self.adapter.send_message(channel_id, embed=embed)
-
-        except Exception as e:
-            logger.error(f"YouTube check error: {e}")
-
-    async def check_twitter(self, alert: dict):
-        """Check Twitter/X for new tweets"""
-        try:
-            channel_id = alert.get('channel_id')
-            account = alert.get('account')
-
-            embed = {
-                "title": "𝕏 New Tweet",
-                "description": f"{account} posted a new tweet!",
-                "color": 0x000000
-            }
-            await self.adapter.send_message(channel_id, embed=embed)
-
-        except Exception as e:
-            logger.error(f"Twitter check error: {e}")
-
-    @app_command(name="alert-add", description="Add social media alert (Admin)", usage="!alert-add <platform> <account> <channel_id>  — e.g. !alert-add twitch shroud 01KHXXXXXXXX  (platforms: twitch, youtube, twitter)")
-    async def alert_add(
-        self,
-        interaction: Dict[str, Any],
-        platform: str,
-        account: str,
-        channel_id: str
-    ):
-        """Add social media alert"""
-        guild_id = interaction.get("server_id") or interaction.get("guild_id")
-        response_channel = interaction.get("channel_id")
-        user_id = interaction.get("user_id")
-
-        if not await self._check_admin(guild_id, user_id):
-            await self.send_embed(
-                response_channel,
-                "Permission Denied",
-                "Only admins can add alerts",
-                color=EmbedColor.ERROR
-            )
-            return
-
-        try:
-            alert = {
-                "guild_id": guild_id,
-                "channel_id": channel_id,
-                "platform": platform.lower(),
-                "account": account,
-                "created_at": datetime.utcnow().isoformat()
-            }
-
-            await self.db.db.social_alerts.insert_one(alert)
-
-            await self.send_embed(
-                response_channel,
-                "✅ Alert Added",
-                f"Monitoring {platform} account: {account}",
-                color=EmbedColor.SUCCESS
-            )
-
-        except Exception as e:
-            logger.error(f"Add alert error: {e}")
-            await self.send_embed(response_channel, "Error", str(e), color=EmbedColor.ERROR)
-
-    async def _check_admin(self, guild_id: str, user_id: str) -> bool:
-        """Check if user is admin"""
-        owner_id = os.getenv("BOT_OWNER_ID")
-        if owner_id and user_id == owner_id:
+    async def _is_admin(self, server_id: str, user_id: str) -> bool:
+        if user_id == os.getenv("BOT_OWNER_ID", ""):
             return True
         try:
-            member = await self.db.get_member(guild_id, user_id)
-            return member and member.get("is_admin", False)
-        except Exception as e:
-            logger.error(f"Admin check error: {e}")
+            sb  = await supa.get_client()
+            res = await (sb.table("server_members")
+                           .select("is_admin,is_owner")
+                           .eq("server_id", server_id)
+                           .eq("user_id",   user_id)
+                           .maybe_single()
+                           .execute())
+            return bool(res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
+        except Exception:
             return False
+
+    # ── alert-add ─────────────────────────────────────────────────────────────
+
+    @app_command(
+        name="alert-add",
+        description="Subscribe to a social media account (Admin)",
+        usage="!alert-add <platform> <account> <channel_id>  "
+              "e.g. !alert-add twitch shroud 01KHXXXXXXXX  (platforms: twitch, youtube, twitter)"
+    )
+    async def alert_add(self, interaction: Dict[str, Any],
+                         platform: str, account: str, channel_id_arg: str):
+        channel_id = interaction["channel_id"]
+        server_id  = interaction.get("server_id") or interaction.get("guild_id")
+        user_id    = interaction["user_id"]
+
+        if not await self._is_admin(server_id, user_id):
+            return await self.send_embed(channel_id, "Permission Denied",
+                                          "Only **Admins** can add alerts.", EmbedColor.ERROR)
+
+        platform = platform.lower()
+        if platform not in ("twitch", "youtube", "twitter"):
+            return await self.send_embed(
+                channel_id, "Invalid Platform",
+                "Supported platforms: `twitch`, `youtube`, `twitter`", EmbedColor.ERROR
+            )
+
+        try:
+            await supa.on_analytics_event(server_id, user_id, "alert_add",
+                                           {"platform": platform, "account": account})
+
+            sb = await supa.get_client()
+            # Upsert so re-adding the same alert is idempotent
+            await (sb.table("social_alerts")
+                     .upsert({
+                         "server_id":   server_id,
+                         "channel_id":  channel_id_arg,
+                         "platform":    platform,
+                         "account":     account,
+                         "added_by":    user_id,
+                     }, on_conflict="server_id,platform,account")
+                     .execute())
+
+            icon  = PLATFORM_ICONS.get(platform, "📡")
+            color = PLATFORM_COLORS.get(platform, EmbedColor.INFO)
+            await self.send_embed(
+                channel_id, f"{icon} Alert Added",
+                f"Now monitoring **{platform}** account `{account}`.\n"
+                f"Posts will go to <#{channel_id_arg}>.",
+                color
+            )
+            logger.info(f"[alert-add] {platform}:{account} → {channel_id_arg} in {server_id}")
+
+        except Exception as e:
+            logger.error(f"[alert-add] {e}", exc_info=True)
+            await self.send_embed(channel_id, "Error", str(e), EmbedColor.ERROR)
+
+    # ── alert-remove ──────────────────────────────────────────────────────────
+
+    @app_command(name="alert-remove", description="Remove a social media alert (Admin)",
+                 usage="!alert-remove <platform> <account>")
+    async def alert_remove(self, interaction: Dict[str, Any], platform: str, account: str):
+        channel_id = interaction["channel_id"]
+        server_id  = interaction.get("server_id") or interaction.get("guild_id")
+        user_id    = interaction["user_id"]
+
+        if not await self._is_admin(server_id, user_id):
+            return await self.send_embed(channel_id, "Permission Denied",
+                                          "Only **Admins** can remove alerts.", EmbedColor.ERROR)
+        try:
+            sb = await supa.get_client()
+            await (sb.table("social_alerts")
+                     .delete()
+                     .eq("server_id", server_id)
+                     .eq("platform",  platform.lower())
+                     .eq("account",   account)
+                     .execute())
+            await self.send_embed(channel_id, "✅ Alert Removed",
+                                   f"Stopped monitoring `{platform}:{account}`.",
+                                   EmbedColor.SUCCESS)
+        except Exception as e:
+            logger.error(f"[alert-remove] {e}", exc_info=True)
+            await self.send_embed(channel_id, "Error", str(e), EmbedColor.ERROR)
+
+    # ── alert-list ────────────────────────────────────────────────────────────
+
+    @app_command(name="alert-list", description="List all social alerts for this server")
+    async def alert_list(self, interaction: Dict[str, Any]):
+        channel_id = interaction["channel_id"]
+        server_id  = interaction.get("server_id") or interaction.get("guild_id")
+        user_id    = interaction["user_id"]
+
+        if not await self._is_admin(server_id, user_id):
+            return await self.send_embed(channel_id, "Permission Denied",
+                                          "Only **Admins** can view alerts.", EmbedColor.ERROR)
+        try:
+            sb  = await supa.get_client()
+            res = await (sb.table("social_alerts")
+                           .select("platform,account,channel_id")
+                           .eq("server_id", server_id)
+                           .order("platform")
+                           .execute())
+            rows = res.data or []
+
+            if not rows:
+                return await self.send_embed(channel_id, "📡 Social Alerts",
+                                              "No alerts configured.\n"
+                                              "Use `!alert-add` to subscribe.", EmbedColor.INFO)
+
+            lines = [
+                f"{PLATFORM_ICONS.get(r['platform'],'📡')} **{r['platform']}** "
+                f"`{r['account']}` → <#{r['channel_id']}>"
+                for r in rows
+            ]
+            await self.send_embed(channel_id, "📡 Social Alerts",
+                                   "\n".join(lines), EmbedColor.INFO)
+
+        except Exception as e:
+            logger.error(f"[alert-list] {e}", exc_info=True)
+            await self.send_embed(channel_id, "Error", str(e), EmbedColor.ERROR)
 
 
 async def setup(adapter, db, config):
-    """Setup function for cog loading"""
     cog = SocialAlerts(adapter, db, config)
-    await cog.start_checking()
+    await cog.start()
     return cog

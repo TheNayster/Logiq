@@ -17,6 +17,8 @@ from adapters.adapter_interface import AdapterInterface
 from healthcheck import start_health_check
 
 from database.db_manager import DatabaseManager
+from database.supabase import get_client as get_supabase_client
+from database.supabase.client import close_client as close_supabase
 from utils.logger import BotLogger
 from utils.embeds import EmbedColor
 from typing import Optional
@@ -66,6 +68,14 @@ class Logiq:
             self.logger.info("✅ Database connected")
         except Exception as e:
             self.logger.error(f"❌ Database connection failed: {e}", exc_info=True)
+            sys.exit(1)
+
+        # Warm up Supabase async client
+        try:
+            await get_supabase_client()
+            self.logger.info("✅ Supabase connected")
+        except Exception as e:
+            self.logger.error(f"❌ Supabase connection failed: {e}", exc_info=True)
             sys.exit(1)
 
         if self.adapter:
@@ -133,6 +143,10 @@ class Logiq:
             self.health_server.shutdown()
         try:
             await self.db.disconnect()
+        except Exception:
+            pass
+        try:
+            await close_supabase()
         except Exception:
             pass
         if self.adapter and hasattr(self.adapter, 'disconnect'):

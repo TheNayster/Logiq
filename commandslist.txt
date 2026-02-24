@@ -1,0 +1,302 @@
+========================================
+  STOATMOD — COMPLETE COMMAND REFERENCE
+  Platform: Stoat.chat
+  Default prefix: !  (change with !prefix)
+========================================
+
+────────────────────────────────────────
+ 🛡️  MODERATION  (requires Moderator role)
+────────────────────────────────────────
+!ban <user_id> [duration] [reason]
+  Alias: !eject
+  Ban a user. Duration optional: 30s / 5m / 1h / 7d
+
+!unban <user_id> [reason]
+  Lift a ban from a user.
+
+!kick <user_id> [reason]
+  Alias: !boot
+  Kick a user from the server.
+
+!warn <user_id> [reason]
+  Alias: !strike
+  Issue a warning. Stored in mod log with auto case number.
+
+!timeout <user_id> <duration> [reason]
+  Timeout (mute) a user for a set duration.
+  Duration format: 30s / 5m / 1h / 2d
+
+!mute <user_id> [duration] [reason]
+  Mute a user (stored in server_members).
+
+!unmute <user_id>
+  Remove mute from a user.
+
+!nick <user_id> <new_nickname>
+  Change a user's nickname. Use "reset" to clear it.
+
+!purge <amount 1–100> [user_id]
+  Alias: !clear
+  Delete recent messages. Filter to one user if user_id given.
+
+!infractions <user_id>
+  Alias: !history
+  List all mod actions against a user (up to 15).
+
+!case <case_number>
+  View full details of a specific mod case.
+
+!reason <case_number> <new reason>
+  Edit the reason recorded on a mod case.
+
+────────────────────────────────────────
+ ⚙️  ADMIN / SETUP  (requires Admin role)
+────────────────────────────────────────
+!setup <log_channel_id> <welcome_channel_id> [prefix]
+  First-time server setup. Configures log + welcome channels.
+
+!modules [module_name] [on|off]
+  View or toggle feature modules.
+  Toggleable: moderation, leveling, economy, tickets,
+              giveaways, welcome, automod, reaction_roles
+
+!setlog <channel_id>
+  Set the mod-log channel.
+
+!setwelcome <channel_id> [message]
+  Set the welcome channel and optional welcome message.
+
+!prefix <new_prefix>
+  Change the command prefix (max 5 characters).
+
+!botinfo
+  View bot stats: version, uptime, server count, user count.
+
+!reload
+  Reload all cogs. (Bot owner only)
+
+!myid
+  Echo your Stoat user ID — useful for mod commands.
+
+!help [command_name]
+  Show all commands, or details on a specific command.
+
+────────────────────────────────────────
+ 📊  LEVELING  (all members)
+────────────────────────────────────────
+!rank [user_id]
+  View your (or another user's) XP rank card.
+  Shows level, XP progress bar, server rank, message count.
+
+!xp-lb [limit]
+  XP / level leaderboard. Default top 10, max 25.
+
+  Note: XP is awarded automatically on messages
+  (default: 10 XP per message, 60s cooldown).
+
+────────────────────────────────────────
+ 💰  ECONOMY  (all members)
+────────────────────────────────────────
+!daily
+  Claim your daily reward (resets every 20 hours).
+
+!bal [user_id]
+  Alias: !balance
+  Check your (or another user's) balance.
+
+!pay <user_id> <amount>
+  Transfer currency to another user.
+
+!eco-lb [limit]
+  Alias: !leaderboard
+  Economy leaderboard — top balances. Default top 10.
+
+!give <user_id> <amount>
+  Give currency to a user. (Admin only)
+
+────────────────────────────────────────
+ 🎫  TICKETS  (all members)
+────────────────────────────────────────
+!ticket-create <topic>
+  Open a new support ticket. Max 3 open at a time.
+
+!ticket-close <ticket_id>
+  Close a ticket. Accepts first 8 chars of the ID.
+  Creators can close their own; mods can close any.
+
+!ticket-list
+  View your open/closed tickets (up to 10).
+
+!ticket-claim <ticket_id>
+  Claim a ticket as the handler. (Moderator only)
+
+!ticket-all [open|closed|all]
+  View all server tickets. Default: open. (Moderator only)
+
+────────────────────────────────────────
+ 🎉  GIVEAWAYS  (Admin to start)
+────────────────────────────────────────
+!giveaway <prize> <duration> [winners]
+  Start a giveaway. Duration: 5m / 1h / 2d. Winners default 1.
+  Example: !giveaway "Nitro Classic" 24h 3
+
+!enter
+  Enter the active giveaway in the current channel.
+
+!end-giveaway <giveaway_id>
+  End a giveaway early and pick winners. (Admin only)
+  Use first 8 chars of the giveaway ID.
+
+!reroll <giveaway_id>
+  Pick new winner(s) for an ended giveaway. (Admin only)
+
+────────────────────────────────────────
+ 👥  ROLES  (Admin only)
+────────────────────────────────────────
+!role-assign <user_id> <role_id>
+  Assign a role to a user.
+
+!role-remove <user_id> <role_id>
+  Remove a role from a user.
+
+!role-list
+  Alias: !rr-list
+  List all reaction-role mappings for this server.
+
+!rr-add <message_id> <emoji> <role_id> [mode]
+  Add a reaction-role mapping to a message.
+  Modes: single (default), multiple, verify
+
+!rr-remove <message_id> <emoji>
+  Remove a reaction-role mapping.
+
+────────────────────────────────────────
+ 🔧  UTILITY  (all members)
+────────────────────────────────────────
+!ping
+  Check bot response latency.
+
+!info
+  Bot information, links, and invite URL.
+
+!support
+  Get the support server / help link.
+
+!serverinfo
+  Server stats: member count, mod actions, active modules.
+
+!userinfo [user_id]
+  Member profile: level, XP, balance, warnings, roles.
+
+!poll <question> <option1> <option2> [option3] [minutes]
+  Create a poll. Duration in minutes, default 60. (Admin only)
+
+!remind <duration> <message>
+  Set a personal reminder. Minimum 30 seconds.
+  Example: !remind 2h Take the chicken out
+
+────────────────────────────────────────
+ 🎮  GAMES  (all members)
+────────────────────────────────────────
+!dice [sides]
+  Roll a dice. Default 6 sides, max 100.
+
+!coinflip
+  Flip a coin — Heads or Tails.
+
+!8ball <question>
+  Ask the magic 8-ball a question.
+
+!trivia
+  Get a random trivia question.
+
+────────────────────────────────────────
+ 📊  ANALYTICS  (Admin only)
+────────────────────────────────────────
+!stats
+  Overview: members, new joins, mod actions, open tickets.
+
+!stats mod
+  Moderation breakdown by action type (last 30 days).
+
+!stats economy
+  Total currency in circulation, average & top balance.
+
+!stats leveling
+  Top 5 XP earners on the server.
+
+────────────────────────────────────────
+ 📡  SOCIAL ALERTS  (Admin only)
+────────────────────────────────────────
+!alert-add <platform> <account> <channel_id>
+  Subscribe to a social media account.
+  Platforms: twitch, youtube, twitter
+  Example: !alert-add twitch shroud 01KHXXXXXXXX
+
+!alert-remove <platform> <account>
+  Unsubscribe from a social media account.
+
+!alert-list
+  List all social media alert subscriptions for this server.
+
+────────────────────────────────────────
+ 🤖  AI CHAT  (all members)
+────────────────────────────────────────
+!ask <question>
+  Ask the AI assistant a question.
+  Messages containing PII (email, phone) are blocked.
+
+!clear-conversation
+  Clear your AI chat history.
+
+────────────────────────────────────────
+ 🔐  VERIFICATION  (Admin to configure)
+────────────────────────────────────────
+!setup-verification <role_id> <welcome_channel_id> [method] [verify_channel_id]
+  Configure the verification system.
+  Methods: dm (default), channel
+
+!send-verification
+  Send the verification prompt to the current channel.
+
+────────────────────────────────────────
+ COMMAND ALIASES QUICK REFERENCE
+────────────────────────────────────────
+!ban      → !eject
+!kick     → !boot
+!warn     → !strike
+!purge    → !clear
+!infractions → !history
+!bal      → !balance
+!eco-lb   → !leaderboard  (economy)
+!role-list → !rr-list
+
+────────────────────────────────────────
+ PERMISSION LEVELS
+────────────────────────────────────────
+Member    — rank, bal, daily, pay, enter, remind, ping,
+            info, support, userinfo, serverinfo, trivia,
+            dice, coinflip, 8ball, ask, clear-conversation
+
+Moderator — + all moderation commands, ticket-claim,
+              ticket-all, infractions
+
+Admin     — + setup, modules, setlog, setwelcome, prefix,
+              botinfo, myid, help, give, poll, giveaway,
+              end-giveaway, reroll, role-assign, role-remove,
+              rr-add, rr-remove, alert-add/remove/list,
+              stats, setup-verification, send-verification
+
+Bot Owner — + reload
+
+────────────────────────────────────────
+ DURATION FORMAT
+────────────────────────────────────────
+  s = seconds   (e.g. 30s)
+  m = minutes   (e.g. 10m)
+  h = hours     (e.g. 2h)
+  d = days      (e.g. 7d)
+
+========================================
+  stoatmod.vercel.app  |  stoat.chat
+========================================
