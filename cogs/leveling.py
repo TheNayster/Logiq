@@ -64,7 +64,7 @@ class Leveling(AdaptedCog):
                            .maybe_single()
                            .execute())
 
-            if not res.data:
+            if not res or not res.data:
                 # Bootstrap member row on first message
                 await supa.on_member_join(server_id, user_id)
                 res = await (sb.table("server_members")
@@ -74,7 +74,7 @@ class Leveling(AdaptedCog):
                                .maybe_single()
                                .execute())
 
-            member   = res.data or {}
+            member   = (res.data if res else None) or {}
             last_xp  = member.get("last_xp_at")
             now      = datetime.now(timezone.utc)
 
@@ -110,7 +110,16 @@ class Leveling(AdaptedCog):
     async def rank(self, interaction: Dict[str, Any], user_id: Optional[str] = None):
         channel_id = interaction["channel_id"]
         server_id  = interaction.get("server_id") or interaction.get("guild_id")
-        target     = UserConverter.parse_user_id(user_id) or user_id or interaction["user_id"]
+        if user_id is not None:
+            target = UserConverter.parse_user_id(user_id)
+            if not target:
+                return await self.send_embed(
+                    channel_id, "Invalid User",
+                    "Please use a mention or ULID, not a username.\nExample: `!rank <@01KH...>`",
+                    EmbedColor.ERROR
+                )
+        else:
+            target = interaction["user_id"]
 
         try:
             sb  = await supa.get_client()
@@ -121,7 +130,7 @@ class Leveling(AdaptedCog):
                            .maybe_single()
                            .execute())
 
-            if not res.data:
+            if not res or not res.data:
                 return await self.send_embed(
                     channel_id, "No Data",
                     f"<@{target}> hasn't sent any messages yet.", EmbedColor.INFO
@@ -142,17 +151,18 @@ class Leveling(AdaptedCog):
             lb_rows = lb_res.data or []
             rank_pos = next((r["rank"] for r in lb_rows if r["user_id"] == target), "?")
 
+            is_self = (target == interaction["user_id"])
+            display = member.get("display_name") or (
+                "You" if is_self else f"{target[:8]}..."
+            )
             embed = EmbedFactory.create(
-                title=f"📊 Rank — {member.get('display_name') or target}",
+                title=f"Rank — {display}",
+                description=(
+                    f"Rank **#{rank_pos}** | Level **{level}** | Messages **{msgs:,}**\n"
+                    f"XP: **{xp:,} / {next_xp:,}**\n"
+                    f"{bar} {progress:.1f}%"
+                ),
                 color=EmbedColor.LEVELING,
-                fields=[
-                    {"name": "🏅 Rank",      "value": f"#{rank_pos}",         "inline": True},
-                    {"name": "📈 Level",     "value": str(level),              "inline": True},
-                    {"name": "✨ XP",        "value": f"{xp:,} / {next_xp:,}", "inline": True},
-                    {"name": "💬 Messages",  "value": f"{msgs:,}",             "inline": True},
-                    {"name": "Progress",
-                     "value": f"{bar} {progress:.1f}%",                        "inline": False},
-                ]
             )
             await self.send_message(channel_id, embed=embed)
 

@@ -54,6 +54,7 @@ class BotLogger:
         console_handler.setFormatter(formatter)
 
         logger.addHandler(console_handler)
+        logger.propagate = False  # prevent root logger double-emitting (avoids CP1252 crash)
 
         # File handler (optional)
         log_file = self.config.get('file')

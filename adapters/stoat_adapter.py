@@ -6,6 +6,7 @@ Handles all Stoat-specific API calls and WebSocket connections
 import difflib
 import json
 import logging
+import shlex
 import aiohttp
 import asyncio
 import websockets
@@ -359,10 +360,13 @@ class StoatAdapter(AdapterInterface):
                                 await supa.on_server_remove(srv_id)
 
                         elif event_type == "ServerMemberJoin":
+                            _srv_id  = event.get("id", "")
+                            _user_id = event.get("user", "")
                             await supa.on_member_join(
-                                server_id=event.get("id", ""),
-                                user_id=event.get("user", ""),
+                                server_id=_srv_id,
+                                user_id=_user_id,
                             )
+                            await self._send_welcome(_srv_id, _user_id)
 
                         elif event_type == "ServerMemberLeave":
                             await supa.on_member_leave(
@@ -405,6 +409,77 @@ class StoatAdapter(AdapterInterface):
                 logger.error(f"WebSocket error: {e}, reconnecting in {reconnect_delay}s...")
 
             await asyncio.sleep(reconnect_delay)
+
+    async def fetch_server_roles(self, server_id: str) -> list:
+        """Fetch all roles for a server from the Stoat/Revolt API."""
+        if not self._connected or not self.session:
+            return []
+        try:
+            headers = {"X-Bot-Token": self.token}
+            async with self.session.get(
+                f"{self.api_base}/servers/{server_id}",
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=self.timeout)
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    roles = data.get("roles", {})
+                    return [{"id": rid, "name": r.get("name", rid)}
+                            for rid, r in roles.items()]
+                return []
+        except Exception as e:
+            logger.error(f"[fetch_server_roles] {e}", exc_info=True)
+            return []
+
+    async def set_member_nickname(self, server_id: str, user_id: str,
+                                   nickname: Optional[str]) -> bool:
+        """Set (or clear) a member's nickname via the Stoat/Revolt API.
+        Pass nickname=None to reset it."""
+        if not self._connected or not self.session:
+            return False
+        try:
+            headers = {"X-Bot-Token": self.token}
+            if nickname:
+                payload: Dict[str, Any] = {"nickname": nickname}
+            else:
+                payload = {"remove": ["Nickname"]}
+            async with self.session.patch(
+                f"{self.api_base}/servers/{server_id}/members/{user_id}",
+                json=payload,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=self.timeout)
+            ) as resp:
+                if resp.status in (200, 204):
+                    return True
+                error_text = await resp.text()
+                logger.warning(f"[set_nickname] {resp.status}: {error_text}")
+                return False
+        except Exception as e:
+            logger.error(f"[set_nickname] {e}", exc_info=True)
+            return False
+
+    async def _send_welcome(self, server_id: str, user_id: str) -> None:
+        """Send a welcome message when a member joins, if configured."""
+        try:
+            sb  = await supa.get_client()
+            res = await (sb.table("servers")
+                           .select("welcome_channel_id,welcome_message,welcome_enabled")
+                           .eq("id", server_id)
+                           .maybe_single()
+                           .execute())
+            if not res or not res.data:
+                return
+            data = res.data
+            if not data.get("welcome_enabled"):
+                return
+            channel_id = data.get("welcome_channel_id")
+            if not channel_id:
+                return
+            template = data.get("welcome_message") or "Welcome <@{user}> to the server!"
+            message  = template.replace("{user}", user_id).replace("{server}", server_id)
+            await self.send_message(channel_id, content=message)
+        except Exception as e:
+            logger.warning(f"[welcome] Failed to send welcome for {user_id} in {server_id}: {e}")
 
     async def _dispatch_message(self, event: Dict[str, Any]) -> None:
         """Parse a Message event and route it to command handlers / on_message listeners.
@@ -463,7 +538,10 @@ class StoatAdapter(AdapterInterface):
 
         cmp = content.lower() if case_insensitive else content
         if cmp.startswith(prefix):
-            parts = content[len(prefix):].split()
+            try:
+                parts = shlex.split(content[len(prefix):])
+            except ValueError:
+                parts = content[len(prefix):].split()
             if parts:
                 cmd_name = parts[0].lower() if case_insensitive else parts[0]
 

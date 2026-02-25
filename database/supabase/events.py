@@ -69,6 +69,19 @@ async def _insert(table: str, data: Dict[str, Any]) -> Optional[Dict]:
         return None
 
 
+async def _ensure_server(server_id: str) -> None:
+    """
+    Guarantee a servers row exists before FK-constrained inserts.
+    Safe to call every time — upsert is idempotent and won't overwrite real data.
+    Needed when the bot was already in a server before on_server_add ever fired.
+    """
+    try:
+        sb = await get_client()
+        await sb.table("servers").upsert({"id": server_id}, on_conflict="id").execute()
+    except Exception as e:
+        logger.warning(f"[supabase] _ensure_server failed for {server_id}: {e}")
+
+
 async def _update(table: str, match: Dict[str, Any], data: Dict[str, Any]) -> bool:
     try:
         sb = await get_client()
@@ -305,6 +318,7 @@ async def on_mod_action(server_id: str, target_id: str, moderator_id: str,
     Log a moderation action (warn/kick/ban/unban/mute/unmute/timeout/note).
     case_number is auto-assigned by the DB trigger.
     """
+    await _ensure_server(server_id)
     data: Dict[str, Any] = {
         "server_id": server_id,
         "target_id": target_id,
@@ -460,6 +474,7 @@ async def on_analytics_event(server_id: str, user_id: Optional[str],
                                data: Optional[Dict[str, Any]] = None) -> None:
     """Generic analytics event sink — fire-and-forget, never blocks bot logic."""
     try:
+        await _ensure_server(server_id)
         await _insert("analytics_events", {
             "server_id": server_id,
             "user_id": user_id,

@@ -8,6 +8,10 @@ import logging
 import os
 import sys
 from pathlib import Path
+
+# Force UTF-8 on Windows CP1252 terminals so emoji in log messages don't crash
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 import importlib
 import inspect
 import yaml
@@ -116,10 +120,14 @@ class Logiq:
                     else:
                         cog_instance = setup(self.adapter, self.db, self.config)
 
-                    # Register cog commands/listeners
+                    # Register cog commands and event listeners
                     if cog_instance:
                         for cmd_name, cmd_handler in cog_instance._commands.items():
                             self.adapter.add_command(cmd_name, cmd_handler)
+                        for event_name, handlers in cog_instance._listeners.items():
+                            if event_name not in self.adapter._event_handlers:
+                                self.adapter._event_handlers[event_name] = []
+                            self.adapter._event_handlers[event_name].extend(handlers)
 
                     self.loaded_cogs.append(cog)
                     self.logger.info(f"  ✅ {cog}")

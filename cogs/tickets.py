@@ -41,7 +41,7 @@ class Tickets(AdaptedCog):
                            .eq("user_id",   user_id)
                            .maybe_single()
                            .execute())
-            if res.data:
+            if res and res.data:
                 return any([res.data.get("is_mod"),
                              res.data.get("is_admin"),
                              res.data.get("is_owner")])
@@ -78,15 +78,23 @@ class Tickets(AdaptedCog):
 
             ticket = await supa.on_ticket_open(server_id, user_id,
                                                 "General Support", topic, channel_id)
-            ticket_id = ticket["id"] if ticket else "?"
+            if not ticket:
+                return await self.send_embed(channel_id, "Error",
+                                             "Failed to create ticket.", EmbedColor.ERROR)
+            ticket_num = ticket.get("ticket_number") or ticket["id"][:8]
 
-            embed = EmbedFactory.ticket_created(ticket_id[:8], topic)
-            embed["fields"] = embed.get("fields", []) + [
-                {"name": "Full ID", "value": f"`{ticket_id}`", "inline": False},
-                {"name": "Close with", "value": f"`!ticket-close {ticket_id[:8]}`", "inline": False},
-            ]
+            embed = EmbedFactory.create(
+                title="Ticket Created",
+                description=(
+                    f"Your support ticket has been opened!\n"
+                    f"**Number:** `#{ticket_num}`\n"
+                    f"**Topic:** {topic}\n\n"
+                    f"Close it with: `!ticket-close {ticket_num}`"
+                ),
+                color=EmbedColor.SUCCESS,
+            )
             await self.send_message(channel_id, embed=embed)
-            logger.info(f"[ticket] created {ticket_id} by {user_id}")
+            logger.info(f"[ticket] #{ticket_num} created by {user_id}")
 
         except Exception as e:
             logger.error(f"[ticket-create] {e}", exc_info=True)
@@ -103,15 +111,15 @@ class Tickets(AdaptedCog):
 
         try:
             sb = await supa.get_client()
-            # Allow partial UUID match (first 8 chars)
-            res = await (sb.table("tickets")
-                           .select("id,creator_id,status,subject")
-                           .eq("server_id", server_id)
-                           .ilike("id", f"{ticket_id}%")
-                           .limit(1)
-                           .execute())
+            # Look up by ticket_number (int) if numeric, else partial UUID text match
+            q = sb.table("tickets").select("id,creator_id,status,subject,ticket_number").eq("server_id", server_id)
+            if ticket_id.isdigit():
+                q = q.eq("ticket_number", int(ticket_id))
+            else:
+                q = q.filter("id::text", "ilike", f"{ticket_id}%")
+            res = await q.limit(1).execute()
 
-            if not res.data:
+            if not res or not res.data:
                 return await self.send_embed(channel_id, "Not Found",
                                               f"No ticket found matching `{ticket_id}`.",
                                               EmbedColor.ERROR)
@@ -130,9 +138,10 @@ class Tickets(AdaptedCog):
                                               "That ticket is already closed.", EmbedColor.WARNING)
 
             await supa.on_ticket_close(full_id, user_id)
+            num = ticket.get("ticket_number") or full_id[:8]
             await self.send_embed(
-                channel_id, "🎫 Ticket Closed",
-                f"Ticket `{full_id[:8]}` — **{ticket.get('subject','?')}** has been closed.",
+                channel_id, "Ticket Closed",
+                f"Ticket **#{num}** — {ticket.get('subject','?')} has been closed.",
                 EmbedColor.SUCCESS
             )
             logger.info(f"[ticket] {full_id} closed by {user_id}")
@@ -155,13 +164,25 @@ class Tickets(AdaptedCog):
                                           "Only **Moderators** can claim tickets.", EmbedColor.ERROR)
         try:
             sb = await supa.get_client()
-            res = await (sb.table("tickets")
-                           .update({"claimed_by": user_id})
-                           .eq("server_id", server_id)
-                           .ilike("id", f"{ticket_id}%")
-                           .execute())
-            await self.send_embed(channel_id, "✅ Ticket Claimed",
-                                   f"You are now handling ticket `{ticket_id}`.",
+            # Resolve ticket_number → UUID first, then update
+            q = sb.table("tickets").select("id,ticket_number").eq("server_id", server_id)
+            if ticket_id.isdigit():
+                q = q.eq("ticket_number", int(ticket_id))
+            else:
+                q = q.filter("id::text", "ilike", f"{ticket_id}%")
+            lookup = await q.limit(1).execute()
+            if not lookup or not lookup.data:
+                return await self.send_embed(channel_id, "Not Found",
+                                             f"No ticket found matching `{ticket_id}`.",
+                                             EmbedColor.ERROR)
+            full_id = lookup.data[0]["id"]
+            num     = lookup.data[0].get("ticket_number") or ticket_id
+            await (sb.table("tickets")
+                     .update({"claimed_by": user_id})
+                     .eq("id", full_id)
+                     .execute())
+            await self.send_embed(channel_id, "Ticket Claimed",
+                                   f"You are now handling ticket **#{num}**.",
                                    EmbedColor.SUCCESS)
         except Exception as e:
             logger.error(f"[ticket-claim] {e}", exc_info=True)
@@ -178,24 +199,25 @@ class Tickets(AdaptedCog):
         try:
             sb  = await supa.get_client()
             res = await (sb.table("tickets")
-                           .select("id,subject,status,created_at")
+                           .select("id,ticket_number,subject,status,created_at")
                            .eq("server_id",  server_id)
                            .eq("creator_id", user_id)
                            .order("created_at", desc=True)
                            .limit(10)
                            .execute())
-            rows = res.data or []
+            rows = (res.data if res else None) or []
 
             if not rows:
-                return await self.send_embed(channel_id, "🎫 Your Tickets",
+                return await self.send_embed(channel_id, "Your Tickets",
                                               "You have no tickets.", EmbedColor.INFO)
 
             lines = []
             for t in rows:
-                icon = "🟢" if t["status"] == "open" else "🔴"
+                icon = "open" if t["status"] == "open" else "closed"
+                num  = t.get("ticket_number") or t["id"][:8]
                 lines.append(
-                    f"{icon} `{t['id'][:8]}` — {t.get('subject','?')[:50]} "
-                    f"*(created {t['created_at'][:10]})*"
+                    f"[{icon}] #{num} — {t.get('subject','?')[:50]} "
+                    f"(created {t['created_at'][:10]})"
                 )
 
             await self.send_embed(channel_id, "🎫 Your Tickets",
@@ -220,14 +242,14 @@ class Tickets(AdaptedCog):
         try:
             sb  = await supa.get_client()
             q   = (sb.table("tickets")
-                     .select("id,creator_id,subject,status,created_at,claimed_by")
+                     .select("id,ticket_number,creator_id,subject,status,created_at,claimed_by")
                      .eq("server_id", server_id)
                      .order("created_at", desc=True)
                      .limit(15))
             if status != "all":
                 q = q.eq("status", status)
             res  = await q.execute()
-            rows = res.data or []
+            rows = (res.data if res else None) or []
 
             if not rows:
                 return await self.send_embed(channel_id, f"🎫 Tickets ({status})",
@@ -235,10 +257,11 @@ class Tickets(AdaptedCog):
 
             lines = []
             for t in rows:
-                icon    = "🟢" if t["status"] == "open" else "🔴"
-                claimed = f" (claimed by <@{t['claimed_by']}>)" if t.get("claimed_by") else ""
+                icon    = "[open]" if t["status"] == "open" else "[closed]"
+                num     = t.get("ticket_number") or t["id"][:8]
+                claimed = f" — claimed by <@{t['claimed_by']}>" if t.get("claimed_by") else ""
                 lines.append(
-                    f"{icon} `{t['id'][:8]}` <@{t['creator_id']}> — "
+                    f"{icon} #{num} <@{t['creator_id']}> — "
                     f"{t.get('subject','?')[:40]}{claimed}"
                 )
 

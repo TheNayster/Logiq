@@ -58,7 +58,7 @@ class Moderation(AdaptedCog):
                           .eq("user_id", user_id)
                           .maybe_single()
                           .execute())
-            if res.data:
+            if res and res.data:
                 return any([res.data.get("is_mod"), res.data.get("is_admin"), res.data.get("is_owner")])
         except Exception as e:
             logger.error(f"Mod check error: {e}")
@@ -287,6 +287,13 @@ class Moderation(AdaptedCog):
                                          "You need **Moderator** to use this command.", EmbedColor.ERROR)
 
         new_nick = None if nickname.lower() == "reset" else nickname
+
+        ok = await self.adapter.set_member_nickname(server_id, user_id, new_nick)
+        if not ok:
+            return await self.send_embed(channel_id, "Failed",
+                                         "Could not change the nickname — the platform API rejected the request.",
+                                         EmbedColor.ERROR)
+
         sb = await supa.get_client()
         await (sb.table("server_members")
                  .update({"display_name": new_nick})
@@ -376,7 +383,7 @@ class Moderation(AdaptedCog):
                            .order("case_number", desc=False)
                            .limit(15)
                            .execute())
-            rows = res.data or []
+            rows = (res.data if res else None) or []
 
             if not rows:
                 return await self.send_embed(channel_id, "📋 Infractions",
@@ -425,10 +432,10 @@ class Moderation(AdaptedCog):
                            .eq("case_number", case_number)
                            .maybe_single()
                            .execute())
-            if not res.data:
+            if not res or not res.data:
                 return await self.send_embed(channel_id, "Not Found",
                                               f"Case #{case_number} not found.", EmbedColor.ERROR)
-            r = res.data
+            r = (res.data if res else None)
             fields = [
                 {"name": "Action",    "value": r["action_type"].upper(), "inline": True},
                 {"name": "Target",    "value": f"<@{r['target_id']}>",   "inline": True},

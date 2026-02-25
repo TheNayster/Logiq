@@ -59,10 +59,28 @@ class ChannelConverter:
 
 
 class UserConverter:
-    """Parse user mentions"""
+    """Parse Stoat user mentions and ULIDs"""
+
+    # Stoat ULIDs: 26 chars, Crockford base32 (digits + most uppercase letters)
+    _ULID_RE = re.compile(r'^[0-9A-HJKMNP-TV-Z]{26}$')
+    # Mention format: <@ULID> or legacy <@!numeric>
+    _MENTION_RE = re.compile(r'<@!?([0-9A-HJKMNP-TV-Z]{26}|\d+)>')
 
     @staticmethod
-    def parse_user_id(mention: str) -> Optional[str]:
-        """Extract user ID from <@123> format"""
-        match = re.match(r'<@!?(\d+)>', mention)
-        return match.group(1) if match else None
+    def parse_user_id(value: Optional[str]) -> Optional[str]:
+        """
+        Extract a valid Stoat user ID from:
+          - <@01KHXXX...> mention format
+          - a raw ULID string
+        Returns None if the value is not a valid mention or ULID.
+        """
+        if not value:
+            return None
+        # Try mention format first
+        match = UserConverter._MENTION_RE.match(value.strip())
+        if match:
+            return match.group(1)
+        # Try raw ULID
+        if UserConverter._ULID_RE.match(value.strip()):
+            return value.strip()
+        return None

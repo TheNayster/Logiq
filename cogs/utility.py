@@ -4,6 +4,7 @@ General-purpose commands available to all users.
 
 Commands:
   !ping                  — Latency check
+  !channelid             — Show current channel ID
   !info                  — Bot information / support links
   !serverinfo            — Server stats from Supabase
   !userinfo [user]       — Member profile
@@ -43,7 +44,7 @@ class Utility(AdaptedCog):
                            .eq("user_id",   user_id)
                            .maybe_single()
                            .execute())
-            return bool(res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
+            return bool(res and res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
         except Exception:
             return False
 
@@ -58,6 +59,18 @@ class Utility(AdaptedCog):
         await self.send_embed(channel_id, "🏓 Pong!",
                                f"Response time: **{latency} ms**", EmbedColor.SUCCESS)
 
+    # ── channelid ─────────────────────────────────────────────────────────────
+
+    @app_command(name="channelid", description="Show the ID of the current channel")
+    async def channelid(self, interaction: Dict[str, Any]):
+        channel_id = interaction["channel_id"]
+        await self.send_embed(
+            channel_id,
+            "Channel ID",
+            f"`{channel_id}`",
+            color=EmbedColor.INFO,
+        )
+
     # ── info ──────────────────────────────────────────────────────────────────
 
     @app_command(name="info", description="Bot information and links")
@@ -65,17 +78,15 @@ class Utility(AdaptedCog):
         channel_id = interaction["channel_id"]
         embed = EmbedFactory.create(
             title="ℹ️ StoatMod",
-            description="A feature-rich moderation and community bot built for Stoat.chat.",
+            description=(
+                "A feature-rich moderation and community bot built for Stoat.chat.\n\n"
+                "**🌐 Website:** https://stoatmod.vercel.app\n"
+                "**📖 Docs:** https://stoatmod.vercel.app/docs\n"
+                "**🐛 Issues:** https://github.com/stoatmod\n"
+                "**➕ Add Bot:** https://stoat.chat/bot/01KHQGBV9WEQYRBKXWHHENES43\n"
+                "**💬 Support:** Use `!support` or join our support server."
+            ),
             color=EmbedColor.PRIMARY,
-            fields=[
-                {"name": "🌐 Website",   "value": "https://stoatmod.vercel.app",       "inline": True},
-                {"name": "📖 Docs",      "value": "https://stoatmod.vercel.app/docs",  "inline": True},
-                {"name": "🐛 Issues",    "value": "https://github.com/stoatmod",        "inline": True},
-                {"name": "➕ Add Bot",
-                 "value": "https://stoat.chat/bot/01KHQGBV9WEQYRBKXWHHENES43",         "inline": False},
-                {"name": "💬 Support",
-                 "value": "Use `!support` or join our support server.",                 "inline": False},
-            ],
             footer="StoatMod | Stoat.chat"
         )
         await self.send_message(channel_id, embed=embed)
@@ -130,16 +141,16 @@ class Utility(AdaptedCog):
 
             embed = EmbedFactory.create(
                 title=f"📊 {srv.get('name') or server_id}",
+                description=(
+                    f"**Server ID:** {server_id}\n"
+                    f"**Owner:** <@{srv.get('owner_id', '?')}>\n"
+                    f"**Prefix:** `{srv.get('prefix', '!')}`\n"
+                    f"**Active Members:** {member_count}\n"
+                    f"**Total Mod Actions:** {mod_count}\n"
+                    f"**Bot Joined:** {joined or 'Unknown'}\n"
+                    f"**Active Modules:** {modules_on}"
+                ),
                 color=EmbedColor.INFO,
-                fields=[
-                    {"name": "Server ID",        "value": server_id,       "inline": True},
-                    {"name": "Owner",             "value": f"<@{srv.get('owner_id','?')}>", "inline": True},
-                    {"name": "Prefix",            "value": f"`{srv.get('prefix','!')}`",    "inline": True},
-                    {"name": "Active Members",    "value": str(member_count),               "inline": True},
-                    {"name": "Total Mod Actions", "value": str(mod_count),                  "inline": True},
-                    {"name": "Bot Joined",        "value": joined or "Unknown",             "inline": True},
-                    {"name": "Active Modules",    "value": modules_on,                      "inline": False},
-                ]
             )
             await self.send_message(channel_id, embed=embed)
 
@@ -166,13 +177,13 @@ class Utility(AdaptedCog):
                            .maybe_single()
                            .execute())
 
-            if not res.data:
+            if not res or not res.data:
                 return await self.send_embed(
                     channel_id, "Not Found",
                     f"<@{target}> has no data in this server.", EmbedColor.ERROR
                 )
 
-            m     = res.data
+            m     = (res.data if res else None)
             roles = []
             if m.get("is_admin"):  roles.append("Admin")
             if m.get("is_mod"):    roles.append("Moderator")
@@ -188,19 +199,19 @@ class Utility(AdaptedCog):
 
             embed = EmbedFactory.create(
                 title=f"👤 {m.get('display_name') or target}",
-                description=f"<@{target}>",
+                description=(
+                    f"<@{target}>\n\n"
+                    f"**User ID:** {target}\n"
+                    f"**Joined:** {joined or '?'}\n"
+                    f"**Rejoins:** {m.get('rejoin_count', 0)}\n"
+                    f"**Level:** {m.get('level', 0)}\n"
+                    f"**XP:** {m.get('xp', 0):,}\n"
+                    f"**Balance:** 💎 {m.get('balance', 0):,}\n"
+                    f"**Messages:** {m.get('total_messages', 0):,}\n"
+                    f"**Warnings:** {warns}\n"
+                    f"**Roles:** {', '.join(roles) or 'Member'}"
+                ),
                 color=EmbedColor.INFO,
-                fields=[
-                    {"name": "User ID",     "value": target,             "inline": True},
-                    {"name": "Joined",      "value": joined or "?",     "inline": True},
-                    {"name": "Rejoins",     "value": str(m.get("rejoin_count", 0)), "inline": True},
-                    {"name": "Level",       "value": str(m.get("level", 0)),        "inline": True},
-                    {"name": "XP",          "value": f"{m.get('xp',0):,}",          "inline": True},
-                    {"name": "Balance",     "value": f"💎 {m.get('balance',0):,}",  "inline": True},
-                    {"name": "Messages",    "value": f"{m.get('total_messages',0):,}", "inline": True},
-                    {"name": "Warnings",    "value": str(warns),                    "inline": True},
-                    {"name": "Roles",       "value": ", ".join(roles) or "Member",  "inline": False},
-                ]
             )
             await self.send_message(channel_id, embed=embed)
 

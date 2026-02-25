@@ -38,7 +38,7 @@ class Analytics(AdaptedCog):
                            .eq("user_id",   user_id)
                            .maybe_single()
                            .execute())
-            return bool(res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
+            return bool(res and res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
         except Exception:
             return False
 
@@ -116,17 +116,15 @@ class Analytics(AdaptedCog):
 
         embed = EmbedFactory.create(
             title="📊 Server Analytics",
+            description=(
+                f"**👥 Active Members:** {members}\n"
+                f"**📈 New (30d):** {new_members}\n"
+                f"**🛡️ Mod Actions (30d):** {mod_actions}\n"
+                f"**🎫 Open Tickets:** {open_tickets}\n"
+                f"**🎉 Active Giveaways:** {active_gw}\n\n"
+                "**Sections:** `!stats mod` · `!stats economy` · `!stats leveling`"
+            ),
             color=EmbedColor.INFO,
-            fields=[
-                {"name": "👥 Active Members",   "value": str(members),      "inline": True},
-                {"name": "📈 New (30d)",         "value": str(new_members),  "inline": True},
-                {"name": "🛡️ Mod Actions (30d)", "value": str(mod_actions),  "inline": True},
-                {"name": "🎫 Open Tickets",       "value": str(open_tickets), "inline": True},
-                {"name": "🎉 Active Giveaways",   "value": str(active_gw),    "inline": True},
-                {"name": "Sections",
-                 "value": "`!stats mod` · `!stats economy` · `!stats leveling`",
-                 "inline": False},
-            ],
             footer="Last 30 days unless noted"
         )
         await self.send_message(channel_id, embed=embed)
@@ -137,7 +135,7 @@ class Analytics(AdaptedCog):
                        .eq("server_id",  server_id)
                        .gte("created_at", d30)
                        .execute())
-        rows = res.data or []
+        rows = (res.data if res else None) or []
         counts: dict = {}
         for r in rows:
             t = r["action_type"]
@@ -157,7 +155,7 @@ class Analytics(AdaptedCog):
                        .eq("server_id", server_id)
                        .is_("left_at",  "null")
                        .execute())
-        balances = [r.get("balance", 0) for r in (res.data or [])]
+        balances = [r.get("balance", 0) for r in ((res.data if res else None) or [])]
         total    = sum(balances)
         avg      = int(total / len(balances)) if balances else 0
         top      = max(balances) if balances else 0
@@ -174,7 +172,7 @@ class Analytics(AdaptedCog):
     async def _stats_leveling(self, channel_id, server_id, sb):
         res = await sb.rpc("get_leaderboard",
                             {"p_server_id": server_id, "p_limit": 5}).execute()
-        rows = res.data or []
+        rows = (res.data if res else None) or []
         lines = [f"**#{r['rank']}** <@{r['user_id']}> — Lv {r['level']} ({r['xp']:,} XP)"
                  for r in rows]
         await self.send_embed(

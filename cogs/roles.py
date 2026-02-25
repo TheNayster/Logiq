@@ -41,7 +41,7 @@ class Roles(AdaptedCog):
                            .eq("user_id",   user_id)
                            .maybe_single()
                            .execute())
-            return bool(res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
+            return bool(res and res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
         except Exception:
             return False
 
@@ -113,7 +113,7 @@ class Roles(AdaptedCog):
                            .eq("server_id", server_id)
                            .limit(25)
                            .execute())
-            rows = res.data or []
+            rows = (res.data if res else None) or []
 
             if not rows:
                 return await self.send_embed(channel_id, "📋 Reaction Roles",
@@ -188,6 +188,31 @@ class Roles(AdaptedCog):
     @app_command(name="rr-list", description="List reaction-role mappings (alias for !role-list)")
     async def rr_list(self, interaction: Dict[str, Any]):
         await self.role_list(interaction)
+
+    # ── server-roles ──────────────────────────────────────────────────────────
+
+    @app_command(name="server-roles", description="List all server roles with their IDs (Admin)",
+                 usage="!server-roles")
+    async def server_roles(self, interaction: Dict[str, Any]):
+        channel_id = interaction["channel_id"]
+        server_id  = interaction.get("server_id") or interaction.get("guild_id")
+        user_id    = interaction["user_id"]
+
+        if not await self._is_admin(server_id, user_id):
+            return await self.send_embed(channel_id, "Permission Denied",
+                                          "Only **Admins** can list role IDs.", EmbedColor.ERROR)
+        try:
+            roles = await self.adapter.fetch_server_roles(server_id)
+            if not roles:
+                return await self.send_embed(channel_id, "Server Roles",
+                                              "No roles found (or API unavailable).", EmbedColor.INFO)
+
+            lines = [f"**{r['name']}** — `{r['id']}`" for r in roles]
+            await self.send_embed(channel_id, "Server Roles",
+                                   "\n".join(lines), EmbedColor.INFO)
+        except Exception as e:
+            logger.error(f"[server-roles] {e}", exc_info=True)
+            await self.send_embed(channel_id, "Error", str(e), EmbedColor.ERROR)
 
 
 async def setup(adapter, db, config):

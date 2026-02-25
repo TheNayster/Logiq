@@ -2,228 +2,338 @@
   STOATMOD — COMPLETE COMMAND REFERENCE
   Platform: Stoat.chat
   Default prefix: !  (change with !prefix)
+  <required>  [optional]
 ========================================
 
 ────────────────────────────────────────
  🛡️  MODERATION  (requires Moderator role)
 ────────────────────────────────────────
-!ban <user_id> [duration] [reason]
+!ban <user> [duration] [reason]
   Alias: !eject
-  Ban a user. Duration optional: 30s / 5m / 1h / 7d
+  Ban a user from the server. Duration is optional.
+  Example: !ban 01KHXXX 7d Spamming in general
+  Example: !ban 01KHXXX Repeated rule violations
 
-!unban <user_id> [reason]
-  Lift a ban from a user.
+!unban <user> [reason]
+  Lift an existing ban.
+  Example: !unban 01KHXXX Appeal approved
 
-!kick <user_id> [reason]
+!kick <user> [reason]
   Alias: !boot
   Kick a user from the server.
+  Example: !kick 01KHXXX Breaking channel rules
 
-!warn <user_id> [reason]
+!warn <user> [reason]
   Alias: !strike
-  Issue a warning. Stored in mod log with auto case number.
+  Issue a warning. Auto-assigned case number.
+  Example: !warn 01KHXXX Inappropriate language
 
-!timeout <user_id> <duration> [reason]
-  Timeout (mute) a user for a set duration.
-  Duration format: 30s / 5m / 1h / 2d
+!timeout <user> <duration> [reason]
+  Temporarily mute a user for a set duration.
+  Example: !timeout 01KHXXX 30m Spamming
+  Example: !timeout 01KHXXX 1h Off-topic flooding
 
-!mute <user_id> [duration] [reason]
+!mute <user> [duration] [reason]
   Mute a user (stored in server_members).
+  Example: !mute 01KHXXX 2h Repeated warnings ignored
 
-!unmute <user_id>
-  Remove mute from a user.
+!unmute <user>
+  Remove a mute from a user.
+  Example: !unmute 01KHXXX
 
-!nick <user_id> <new_nickname>
+!nick <user> <nickname>
   Change a user's nickname. Use "reset" to clear it.
+  Example: !nick 01KHXXX CoolNickname
+  Example: !nick 01KHXXX reset
 
-!purge <amount 1–100> [user_id]
+!purge <amount> [user]
   Alias: !clear
-  Delete recent messages. Filter to one user if user_id given.
+  Delete recent messages (1–100). Filter to one user optionally.
+  Example: !purge 50
+  Example: !purge 20 01KHXXX
 
-!infractions <user_id>
+!infractions <user>
   Alias: !history
   List all mod actions against a user (up to 15).
+  Example: !infractions 01KHXXX
 
 !case <case_number>
   View full details of a specific mod case.
+  Example: !case 42
 
 !reason <case_number> <new reason>
   Edit the reason recorded on a mod case.
+  Example: !reason 42 Corrected — was repeated spam not one message
 
 ────────────────────────────────────────
  ⚙️  ADMIN / SETUP  (requires Admin role)
 ────────────────────────────────────────
 !setup <log_channel_id> <welcome_channel_id> [prefix]
   First-time server setup. Configures log + welcome channels.
+  Example: !setup 01KHXXX 01KHYYY
+  Example: !setup 01KHXXX 01KHYYY ?
 
-!modules [module_name] [on|off]
-  View or toggle feature modules.
-  Toggleable: moderation, leveling, economy, tickets,
-              giveaways, welcome, automod, reaction_roles
+!modules [module] [on|off]
+  View all modules, or toggle one on/off.
+  Modules: moderation, leveling, economy, tickets,
+           giveaways, welcome, automod, reaction_roles
+  Example: !modules
+  Example: !modules leveling off
+  Example: !modules economy on
 
 !setlog <channel_id>
   Set the mod-log channel.
+  Example: !setlog 01KHXXX
 
 !setwelcome <channel_id> [message]
   Set the welcome channel and optional welcome message.
+  Example: !setwelcome 01KHXXX
+  Example: !setwelcome 01KHXXX Welcome to the server, {user}!
 
 !prefix <new_prefix>
   Change the command prefix (max 5 characters).
+  Example: !prefix ?
+  Example: !prefix >>
 
 !botinfo
   View bot stats: version, uptime, server count, user count.
+  (No arguments)
 
 !reload
-  Reload all cogs. (Bot owner only)
+  Reload all cogs. Bot owner only.
+  (No arguments)
 
 !myid
-  Echo your Stoat user ID — useful for mod commands.
+  Echo your Stoat user ID — useful for referencing yourself in mod commands.
+  (No arguments)
 
-!help [command_name]
+!help [command]
   Show all commands, or details on a specific command.
+  Example: !help
+  Example: !help ban
 
 ────────────────────────────────────────
  📊  LEVELING  (all members)
 ────────────────────────────────────────
-!rank [user_id]
-  View your (or another user's) XP rank card.
-  Shows level, XP progress bar, server rank, message count.
+  XP is awarded automatically on messages (10 XP, 60s cooldown).
+
+!rank [user]
+  View your XP rank card, or another user's.
+  Example: !rank
+  Example: !rank 01KHXXX
 
 !xp-lb [limit]
-  XP / level leaderboard. Default top 10, max 25.
-
-  Note: XP is awarded automatically on messages
-  (default: 10 XP per message, 60s cooldown).
+  XP leaderboard. Default top 10, max 25.
+  Example: !xp-lb
+  Example: !xp-lb 25
 
 ────────────────────────────────────────
  💰  ECONOMY  (all members)
 ────────────────────────────────────────
 !daily
   Claim your daily reward (resets every 20 hours).
+  (No arguments)
 
-!bal [user_id]
+!bal [user]
   Alias: !balance
-  Check your (or another user's) balance.
+  Check your balance, or another user's.
+  Example: !bal
+  Example: !bal 01KHXXX
 
-!pay <user_id> <amount>
+!pay <user> <amount>
   Transfer currency to another user.
+  Example: !pay 01KHXXX 500
 
 !eco-lb [limit]
   Alias: !leaderboard
   Economy leaderboard — top balances. Default top 10.
+  Example: !eco-lb
+  Example: !eco-lb 20
 
-!give <user_id> <amount>
-  Give currency to a user. (Admin only)
+!give <user> <amount>
+  Admin only — grant currency to a user.
+  Example: !give 01KHXXX 1000
 
 ────────────────────────────────────────
  🎫  TICKETS  (all members)
 ────────────────────────────────────────
 !ticket-create <topic>
   Open a new support ticket. Max 3 open at a time.
+  Example: !ticket-create Need help with my account
+  Example: !ticket-create Report: user harassing me in DMs
 
 !ticket-close <ticket_id>
-  Close a ticket. Accepts first 8 chars of the ID.
+  Close a ticket. Use the first 8 characters of the ticket ID.
   Creators can close their own; mods can close any.
+  Example: !ticket-close a1b2c3d4
 
 !ticket-list
-  View your open/closed tickets (up to 10).
+  View your own open and closed tickets (up to 10).
+  (No arguments)
 
 !ticket-claim <ticket_id>
-  Claim a ticket as the handler. (Moderator only)
+  Moderator only — claim a ticket as the handler.
+  Example: !ticket-claim a1b2c3d4
 
 !ticket-all [open|closed|all]
-  View all server tickets. Default: open. (Moderator only)
+  Moderator only — view all server tickets. Default: open.
+  Example: !ticket-all
+  Example: !ticket-all closed
+  Example: !ticket-all all
 
 ────────────────────────────────────────
- 🎉  GIVEAWAYS  (Admin to start)
+ 🎉  GIVEAWAYS  (Admin to start, anyone to enter)
 ────────────────────────────────────────
 !giveaway <prize> <duration> [winners]
-  Start a giveaway. Duration: 5m / 1h / 2d. Winners default 1.
-  Example: !giveaway "Nitro Classic" 24h 3
+  Start a giveaway. Winners defaults to 1.
+  Example: !giveaway "Steam Key" 24h
+  Example: !giveaway "Nitro Classic" 2d 3
 
-!enter
-  Enter the active giveaway in the current channel.
+!giveaway-list
+  Show all active giveaways in this server.
+  (No arguments)
 
-!end-giveaway <giveaway_id>
-  End a giveaway early and pick winners. (Admin only)
-  Use first 8 chars of the giveaway ID.
+!enter [number]
+  Enter the active giveaway in this channel, or specify a number.
+  Example: !enter
+  Example: !enter 3
 
-!reroll <giveaway_id>
-  Pick new winner(s) for an ended giveaway. (Admin only)
+!end-giveaway <number>
+  Admin only — end a giveaway early and pick winners.
+  Example: !end-giveaway 2
+
+!reroll <number>
+  Admin only — pick new winner(s) for an ended giveaway.
+  Example: !reroll 2
 
 ────────────────────────────────────────
  👥  ROLES  (Admin only)
 ────────────────────────────────────────
-!role-assign <user_id> <role_id>
+!role-assign <user> <role_id>
   Assign a role to a user.
+  Example: !role-assign 01KHXXX 01KHYYY
 
-!role-remove <user_id> <role_id>
+!role-remove <user> <role_id>
   Remove a role from a user.
+  Example: !role-remove 01KHXXX 01KHYYY
 
 !role-list
   Alias: !rr-list
   List all reaction-role mappings for this server.
+  (No arguments)
 
 !rr-add <message_id> <emoji> <role_id> [mode]
   Add a reaction-role mapping to a message.
   Modes: single (default), multiple, verify
+  Example: !rr-add 01KHXXX 🎮 01KHYYY
+  Example: !rr-add 01KHXXX ✅ 01KHYYY verify
 
 !rr-remove <message_id> <emoji>
   Remove a reaction-role mapping.
+  Example: !rr-remove 01KHXXX 🎮
 
 ────────────────────────────────────────
  🔧  UTILITY  (all members)
 ────────────────────────────────────────
 !ping
   Check bot response latency.
+  (No arguments)
+
+!channelid
+  Show the ID of the current channel. Useful for setup commands.
+  (No arguments)
 
 !info
   Bot information, links, and invite URL.
+  (No arguments)
 
 !support
   Get the support server / help link.
+  (No arguments)
 
 !serverinfo
   Server stats: member count, mod actions, active modules.
+  (No arguments)
 
-!userinfo [user_id]
+!userinfo [user]
   Member profile: level, XP, balance, warnings, roles.
+  Example: !userinfo
+  Example: !userinfo 01KHXXX
 
 !poll <question> <option1> <option2> [option3] [minutes]
-  Create a poll. Duration in minutes, default 60. (Admin only)
+  Admin only — create a poll. Duration in minutes, default 60.
+  Example: !poll "Favourite game?" Minecraft Fortnite
+  Example: !poll "Best pet?" Cat Dog Fish 30
 
 !remind <duration> <message>
-  Set a personal reminder. Minimum 30 seconds.
+  Set a personal reminder.
+  Example: !remind 30m Check the oven
   Example: !remind 2h Take the chicken out
+  Example: !remind 1d Renew subscription
 
 ────────────────────────────────────────
  🎮  GAMES  (all members)
 ────────────────────────────────────────
 !dice [sides]
-  Roll a dice. Default 6 sides, max 100.
+  Roll a die. Default 6 sides, max 100.
+  Example: !dice
+  Example: !dice 20
 
 !coinflip
   Flip a coin — Heads or Tails.
+  (No arguments)
 
 !8ball <question>
-  Ask the magic 8-ball a question.
+  Ask the magic 8-ball a yes/no question.
+  Example: !8ball Will it rain today?
+  Example: !8ball Should I go to sleep?
 
 !trivia
-  Get a random trivia question.
+  Get a random fun fact.
+  (No arguments)
+
+────────────────────────────────────────
+ 🎵  MUSIC  (all members)
+────────────────────────────────────────
+  Note: Voice API integration is pending — commands respond but
+  playback is not yet live.
+
+!play <query>
+  Add a track to the queue by YouTube URL or search query.
+  Example: !play never gonna give you up
+  Example: !play https://youtube.com/watch?v=...
+
+!queue
+  View the current music queue.
+  (No arguments)
+
+!skip
+  Skip the currently playing track.
+  (No arguments)
+
+────────────────────────────────────────
+ 🔊  TEMP VOICE  (all members)
+────────────────────────────────────────
+  Note: These commands are NOT YET AVAILABLE — voice channel
+  support is pending platform API access.
+
+!setup-tempvoice   [NOT AVAILABLE]
+!voice-lock        [NOT AVAILABLE]
+!voice-unlock      [NOT AVAILABLE]
+!voice-rename      [NOT AVAILABLE]
+!voice-limit       [NOT AVAILABLE]
+!voice-claim       [NOT AVAILABLE]
 
 ────────────────────────────────────────
  📊  ANALYTICS  (Admin only)
 ────────────────────────────────────────
-!stats
-  Overview: members, new joins, mod actions, open tickets.
-
-!stats mod
-  Moderation breakdown by action type (last 30 days).
-
-!stats economy
-  Total currency in circulation, average & top balance.
-
-!stats leveling
-  Top 5 XP earners on the server.
+!stats [section]
+  Server analytics dashboard. Section is optional.
+  Sections: mod, economy, leveling
+  Example: !stats
+  Example: !stats mod
+  Example: !stats economy
+  Example: !stats leveling
 
 ────────────────────────────────────────
  📡  SOCIAL ALERTS  (Admin only)
@@ -231,23 +341,29 @@
 !alert-add <platform> <account> <channel_id>
   Subscribe to a social media account.
   Platforms: twitch, youtube, twitter
-  Example: !alert-add twitch shroud 01KHXXXXXXXX
+  Example: !alert-add twitch shroud 01KHXXX
+  Example: !alert-add youtube MrBeast 01KHXXX
 
 !alert-remove <platform> <account>
   Unsubscribe from a social media account.
+  Example: !alert-remove twitch shroud
 
 !alert-list
-  List all social media alert subscriptions for this server.
+  List all active social alert subscriptions for this server.
+  (No arguments)
 
 ────────────────────────────────────────
  🤖  AI CHAT  (all members)
 ────────────────────────────────────────
 !ask <question>
-  Ask the AI assistant a question.
-  Messages containing PII (email, phone) are blocked.
+  Ask the AI assistant anything.
+  Messages containing personal info (email, phone) are blocked.
+  Example: !ask What is the capital of Iceland?
+  Example: !ask Explain black holes in simple terms
 
 !clear-conversation
-  Clear your AI chat history.
+  Clear your personal AI chat history.
+  (No arguments)
 
 ────────────────────────────────────────
  🔐  VERIFICATION  (Admin to configure)
@@ -255,31 +371,37 @@
 !setup-verification <role_id> <welcome_channel_id> [method] [verify_channel_id]
   Configure the verification system.
   Methods: dm (default), channel
+  Example: !setup-verification 01KHXXX 01KHYYY
+  Example: !setup-verification 01KHXXX 01KHYYY channel 01KHZZZ
 
 !send-verification
   Send the verification prompt to the current channel.
+  (No arguments)
 
 ────────────────────────────────────────
- COMMAND ALIASES QUICK REFERENCE
+ ALIASES QUICK REFERENCE
 ────────────────────────────────────────
-!ban      → !eject
-!kick     → !boot
-!warn     → !strike
-!purge    → !clear
-!infractions → !history
-!bal      → !balance
-!eco-lb   → !leaderboard  (economy)
-!role-list → !rr-list
+!ban          → !eject
+!kick         → !boot
+!warn         → !strike
+!purge        → !clear
+!infractions  → !history
+!bal          → !balance
+!eco-lb       → !leaderboard
+!role-list    → !rr-list
 
 ────────────────────────────────────────
  PERMISSION LEVELS
 ────────────────────────────────────────
 Member    — rank, bal, daily, pay, enter, remind, ping,
             info, support, userinfo, serverinfo, trivia,
-            dice, coinflip, 8ball, ask, clear-conversation
+            dice, coinflip, 8ball, ask, clear-conversation,
+            ticket-create, ticket-close, ticket-list,
+            play, queue, skip, channelid
 
-Moderator — + all moderation commands, ticket-claim,
-              ticket-all, infractions
+Moderator — + ban, unban, kick, warn, timeout, mute, unmute,
+              nick, purge, infractions, case, reason,
+              ticket-claim, ticket-all
 
 Admin     — + setup, modules, setlog, setwelcome, prefix,
               botinfo, myid, help, give, poll, giveaway,

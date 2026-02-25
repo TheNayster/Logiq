@@ -73,7 +73,7 @@ modules:
   economy:
     enabled: true
     currency_name: "Coins"
-    currency_symbol: "💎"
+    currency_symbol: "coins"
     starting_balance: 1000
     daily_reward: 100
 

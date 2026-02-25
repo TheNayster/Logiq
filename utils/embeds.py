@@ -134,13 +134,9 @@ class EmbedFactory:
     def level_up(user_id: str, username: str, new_level: int, xp: int) -> Dict[str, Any]:
         """Create level up embed (Stoat format)"""
         return EmbedFactory.create(
-            title="🎉 Level Up!",
-            description=f"<@{user_id}> just reached **Level {new_level}**!",
+            title="Level Up!",
+            description=f"<@{user_id}> just reached **Level {new_level}**!\nTotal XP: **{xp:,}**",
             color=EmbedColor.LEVELING,
-            fields=[
-                {"name": "Level", "value": str(new_level), "inline": True},
-                {"name": "Total XP", "value": str(xp), "inline": True}
-            ]
         )
 
     @staticmethod
@@ -157,14 +153,13 @@ class EmbedFactory:
         progress_bar = "█" * int(progress / 10) + "░" * (10 - int(progress / 10))
 
         return EmbedFactory.create(
-            title=f"📊 Rank Card - {username}",
+            title=f"Rank — {username}",
+            description=(
+                f"Rank **#{rank}** | Level **{level}**\n"
+                f"XP: **{xp % next_level_xp:,} / {next_level_xp:,}**\n"
+                f"{progress_bar} {progress:.1f}%"
+            ),
             color=EmbedColor.LEVELING,
-            fields=[
-                {"name": "Rank", "value": f"#{rank}", "inline": True},
-                {"name": "Level", "value": str(level), "inline": True},
-                {"name": "XP", "value": f"{xp % next_level_xp}/{next_level_xp}", "inline": True},
-                {"name": "Progress", "value": f"{progress_bar} {progress:.1f}%", "inline": False}
-            ]
         )
 
     @staticmethod
@@ -176,12 +171,9 @@ class EmbedFactory:
     ) -> Dict[str, Any]:
         """Create balance embed (Stoat format)"""
         return EmbedFactory.create(
-            title=f"{currency_symbol} Balance",
-            description=f"<@{user_id}>'s balance",
+            title="Balance",
+            description=f"<@{user_id}>'s balance: **{currency_symbol} {balance:,}**",
             color=EmbedColor.ECONOMY,
-            fields=[
-                {"name": "Amount", "value": f"{currency_symbol} {balance:,}", "inline": False}
-            ]
         )
 
     @staticmethod
@@ -195,14 +187,13 @@ class EmbedFactory:
     ) -> Dict[str, Any]:
         """Create moderation action embed (Stoat format)"""
         return EmbedFactory.create(
-            title=f"🔨 {action}",
-            description=f"<@{user_id}> has been {action.lower()}",
+            title=action,
+            description=(
+                f"**User:** <@{user_id}>\n"
+                f"**Moderator:** <@{moderator_id}>\n"
+                f"**Reason:** {reason}"
+            ),
             color=EmbedColor.WARNING,
-            fields=[
-                {"name": "User", "value": f"<@{user_id}> ({user_id})", "inline": True},
-                {"name": "Moderator", "value": f"<@{moderator_id}>", "inline": True},
-                {"name": "Reason", "value": reason, "inline": False}
-            ]
         )
 
     @staticmethod
@@ -219,13 +210,9 @@ class EmbedFactory:
     def ticket_created(ticket_id: str, category: str) -> Dict[str, Any]:
         """Create ticket created embed"""
         return EmbedFactory.create(
-            title="🎫 Ticket Created",
-            description="Your support ticket has been created!",
+            title="Ticket Created",
+            description=f"Your support ticket has been created!\n**ID:** `{ticket_id}`\n**Category:** {category}",
             color=EmbedColor.SUCCESS,
-            fields=[
-                {"name": "Ticket ID", "value": ticket_id, "inline": True},
-                {"name": "Category", "value": category, "inline": True}
-            ]
         )
 
     @staticmethod

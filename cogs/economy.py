@@ -44,7 +44,8 @@ class Economy(AdaptedCog):
         res = await (sb.table("server_members")
                        .upsert({"server_id": server_id, "user_id": user_id,
                                 "balance": self.starting_bal},
-                               on_conflict="server_id,user_id")
+                               on_conflict="server_id,user_id",
+                               ignore_duplicates=True)
                        .execute())
         # Fetch fresh row after upsert
         fetch = await (sb.table("server_members")
@@ -66,7 +67,7 @@ class Economy(AdaptedCog):
                            .eq("user_id", user_id)
                            .maybe_single()
                            .execute())
-            return bool(res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
+            return bool(res and res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
         except Exception:
             return False
 
@@ -108,10 +109,12 @@ class Economy(AdaptedCog):
                      .execute())
 
             embed = EmbedFactory.create(
-                title="💰 Daily Reward Claimed!",
-                description=f"You received **{self.currency_symbol} {self.daily_reward}**!",
+                title="Daily Reward Claimed!",
+                description=(
+                    f"You received **{self.currency_symbol} {self.daily_reward}**!\n"
+                    f"New balance: **{self.currency_symbol} {new_bal:,}**"
+                ),
                 color=EmbedColor.SUCCESS,
-                fields=[{"name": "New Balance", "value": f"{self.currency_symbol} {new_bal:,}", "inline": True}]
             )
             await self.send_message(channel_id, embed=embed)
 
@@ -126,12 +129,31 @@ class Economy(AdaptedCog):
     async def bal(self, interaction: Dict[str, Any], user_id: Optional[str] = None):
         channel_id = interaction["channel_id"]
         server_id  = interaction.get("server_id") or interaction.get("guild_id")
-        target     = UserConverter.parse_user_id(user_id) or user_id or interaction["user_id"]
+        if user_id is not None:
+            target = UserConverter.parse_user_id(user_id)
+            if not target:
+                return await self.send_embed(
+                    channel_id, "Invalid User",
+                    "Please use a mention or ULID, not a username.\nExample: `!bal <@01KH...>`",
+                    EmbedColor.ERROR
+                )
+        else:
+            target = interaction["user_id"]
 
         try:
             member = await self._ensure_member(server_id, target)
             balance = member.get("balance", 0)
-            embed = EmbedFactory.economy_balance(target, target, balance, self.currency_symbol)
+            is_self = (target == interaction["user_id"])
+            desc = (
+                f"Your balance: **{self.currency_symbol} {balance:,}**"
+                if is_self
+                else f"Balance: **{self.currency_symbol} {balance:,}**"
+            )
+            embed = EmbedFactory.create(
+                title="Balance",
+                description=desc,
+                color=EmbedColor.ECONOMY,
+            )
             await self.send_message(channel_id, embed=embed)
         except Exception as e:
             logger.error(f"[bal] {e}", exc_info=True)
@@ -226,7 +248,7 @@ class Economy(AdaptedCog):
             sb  = await supa.get_client()
             res = await sb.rpc("get_economy_leaderboard",
                                 {"p_server_id": server_id, "p_limit": limit}).execute()
-            rows = res.data or []
+            rows = (res.data if res else None) or []
             lines = []
             medals = ["🥇", "🥈", "🥉"]
             for i, r in enumerate(rows):

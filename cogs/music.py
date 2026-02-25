@@ -37,27 +37,23 @@ class MusicQueue:
 
     def get_queue_embed(self, limit: int = 10) -> Dict[str, Any]:
         """Get queue as embed"""
-        embed = {
-            "title": "🎵 Music Queue",
-            "description": f"**Current:** {self.current.get('title', 'None')}" if self.current else "**Current:** None",
-            "fields": []
+        current_str = self.current.get("title", "None") if self.current else "None"
+        lines = [f"**Now playing:** {current_str}"]
+
+        if self.queue:
+            lines.append("")
+            for i, track in enumerate(self.queue[:limit], 1):
+                lines.append(f"{i}. {track.get('title', 'Unknown')}")
+            if len(self.queue) > limit:
+                lines.append(f"+{len(self.queue) - limit} more...")
+        else:
+            lines.append("Queue is empty.")
+
+        return {
+            "title": "Music Queue",
+            "description": "\n".join(lines),
+            "color": 0x3498DB,
         }
-
-        for i, track in enumerate(self.queue[:limit], 1):
-            embed["fields"].append({
-                "name": f"{i}. {track.get('title', 'Unknown')}",
-                "value": f"Duration: {track.get('duration', 'Unknown')}",
-                "inline": False
-            })
-
-        if len(self.queue) > limit:
-            embed["fields"].append({
-                "name": "...",
-                "value": f"+{len(self.queue) - limit} more tracks",
-                "inline": False
-            })
-
-        return embed
 
 
 class Music(AdaptedCog):
@@ -90,11 +86,16 @@ class Music(AdaptedCog):
                 "url": f"https://youtube.com/results?search_query={query}"
             }
 
-            queue.add(track)
+            if not queue.current and not queue.queue:
+                queue.current = track
+                desc = f"**{track['title']}**\nNow playing (voice pending)."
+            else:
+                queue.add(track)
+                desc = f"**{track['title']}**\nPosition: #{len(queue.queue)}"
 
             embed = {
-                "title": "🎵 Added to Queue",
-                "description": f"**{track['title']}**\nPosition: #{len(queue.queue)}",
+                "title": "Added to Queue",
+                "description": desc,
                 "color": EmbedColor.SUCCESS
             }
 

@@ -57,7 +57,7 @@ class SocialAlerts(AdaptedCog):
         """Stub: real platform API calls would go here."""
         sb  = await supa.get_client()
         res = await sb.table("social_alerts").select("*").execute()
-        for alert in (res.data or []):
+        for alert in ((res.data if res else None) or []):
             platform = alert.get("platform", "")
             # TODO: integrate real Twitch/YouTube/Twitter API checks per alert
             logger.debug(f"[social_alerts] would check {platform}:{alert.get('account')}")
@@ -73,7 +73,7 @@ class SocialAlerts(AdaptedCog):
                            .eq("user_id",   user_id)
                            .maybe_single()
                            .execute())
-            return bool(res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
+            return bool(res and res.data and (res.data.get("is_admin") or res.data.get("is_owner")))
         except Exception:
             return False
 
@@ -177,7 +177,7 @@ class SocialAlerts(AdaptedCog):
                            .eq("server_id", server_id)
                            .order("platform")
                            .execute())
-            rows = res.data or []
+            rows = (res.data if res else None) or []
 
             if not rows:
                 return await self.send_embed(channel_id, "📡 Social Alerts",

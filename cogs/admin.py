@@ -48,7 +48,7 @@ class Admin(AdaptedCog):
                            .eq("user_id", user_id)
                            .maybe_single()
                            .execute())
-            if res.data:
+            if res and res.data:
                 return any([res.data.get("is_admin"), res.data.get("is_owner")])
         except Exception as e:
             logger.error(f"Admin check error: {e}")
@@ -75,18 +75,18 @@ class Admin(AdaptedCog):
 
             embed = EmbedFactory.create(
                 title="🤖 StoatMod — Bot Info",
-                description="Feature-rich moderation bot for Stoat.chat",
+                description=(
+                    "Feature-rich moderation bot for Stoat.chat\n\n"
+                    f"**📦 Version:** 1.0.0\n"
+                    f"**🐍 Python:** {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}\n"
+                    f"**🗄️ Database:** Supabase (Postgres)\n"
+                    f"**🌐 Platform:** Stoat.chat\n"
+                    f"**⏱️ Uptime:** {h}h {m}m {s}s\n"
+                    f"**📊 Servers:** {servers_count}\n"
+                    f"**👥 Users:** {users_count}\n"
+                    f"**📖 Docs:** https://stoatmod.vercel.app"
+                ),
                 color=EmbedColor.PRIMARY,
-                fields=[
-                    {"name": "📦 Version",   "value": "1.0.0",         "inline": True},
-                    {"name": "🐍 Python",    "value": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}", "inline": True},
-                    {"name": "🗄️ Database",  "value": "Supabase (Postgres)", "inline": True},
-                    {"name": "🌐 Platform",  "value": "Stoat.chat",    "inline": True},
-                    {"name": "⏱️ Uptime",    "value": f"{h}h {m}m {s}s", "inline": True},
-                    {"name": "📊 Servers",   "value": str(servers_count), "inline": True},
-                    {"name": "👥 Users",     "value": str(users_count),   "inline": True},
-                    {"name": "📖 Docs",      "value": "https://stoatmod.vercel.app", "inline": False},
-                ]
             )
             await self.send_message(channel_id, embed=embed)
         except Exception as e:
@@ -130,17 +130,16 @@ class Admin(AdaptedCog):
 
             embed = EmbedFactory.create(
                 title="✅ StoatMod Setup Complete",
+                description=(
+                    f"**📋 Log Channel:** <#{log_channel_id}>\n"
+                    f"**👋 Welcome Channel:** <#{welcome_channel_id}>\n"
+                    f"**⌨️ Prefix:** `{prefix}`\n\n"
+                    "**Next Steps:**\n"
+                    "• `!modules` — enable/disable features\n"
+                    "• `!setup-verification <role> <channel>` — add verification\n"
+                    "• `!help` — see all commands"
+                ),
                 color=EmbedColor.SUCCESS,
-                fields=[
-                    {"name": "📋 Log Channel",     "value": f"<#{log_channel_id}>",     "inline": True},
-                    {"name": "👋 Welcome Channel", "value": f"<#{welcome_channel_id}>", "inline": True},
-                    {"name": "⌨️ Prefix",          "value": f"`{prefix}`",              "inline": True},
-                    {"name": "Next Steps", "value":
-                     "• `!modules` — enable/disable features\n"
-                     "• `!setup-verification <role> <channel>` — add verification\n"
-                     "• `!help` — see all commands",
-                     "inline": False},
-                ]
             )
             await self.send_message(channel_id, embed=embed)
         except Exception as e:
@@ -195,7 +194,7 @@ class Admin(AdaptedCog):
                            .eq("id", server_id)
                            .maybe_single()
                            .execute())
-            data = res.data or {}
+            data = (res.data if res else None) or {}
 
             lines = []
             for m in TOGGLEABLE:

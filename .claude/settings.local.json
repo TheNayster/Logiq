@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python.exe -c \"import yaml; print\\(''yaml OK''\\)\")",
+      "Bash(/c/Users/sephi/Documents/GitHub/Logiq/.venv/Scripts/python.exe -c \"import aiohttp; print\\(aiohttp.__version__\\); import json; print\\(json.dumps\\({''t'': ''💎''}\\)\\)\")"
+    ]
+  }
+}
