@@ -9,8 +9,6 @@ from typing import Dict, Any, Optional
 
 from adapters.cog_base import AdaptedCog, app_command, listener
 from utils.embeds import EmbedFactory, EmbedColor
-from database.db_manager import DatabaseManager
-
 logger = logging.getLogger(__name__)
 
 

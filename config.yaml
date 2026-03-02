@@ -29,8 +29,8 @@ rollout:
     leveling: "gradual"           # 50% of servers
     tickets: "beta"               # 25% whitelist
     giveaways: "beta"             # 25% whitelist
-    social_alerts: "internal"     # 5% testing
-    ai_chat: "internal"           # 10% testing
+    social_alerts: "stable"       # 100% of servers
+    ai_chat: "stable"             # 100% of servers
 
   # Gradual rollout percentages
   percentages:
@@ -38,8 +38,8 @@ rollout:
     leveling: 50
     tickets: 25
     giveaways: 25
-    social_alerts: 5
-    ai_chat: 10
+    social_alerts: 100
+    ai_chat: 100
 
   # Beta whitelist (servers with early access)
   whitelist:
@@ -93,12 +93,14 @@ modules:
     max_duration: 2592000
 
   social_alerts:
-    enabled: false    # Internal testing only
+    enabled: true
     check_interval: 300
 
   ai_chat:
-    enabled: false    # Internal testing only
-    provider: "openai"
+    enabled: true
+    provider: "openai"          # openai | anthropic
+    model_openai: "gpt-3.5-turbo"
+    model_anthropic: "claude-haiku-4-5-20251001"
 
 # Logging
 logging:

@@ -20,7 +20,6 @@ from datetime import datetime
 from adapters.adapter_interface import AdapterInterface
 from healthcheck import start_health_check
 
-from database.db_manager import DatabaseManager
 from database.supabase import get_client as get_supabase_client
 from database.supabase.client import close_client as close_supabase
 from utils.logger import BotLogger
@@ -39,11 +38,7 @@ class Logiq:
         self.start_time = datetime.utcnow()
         self.logger = BotLogger(config.get('logging', {}))
 
-        db_config = config.get('database', {})
-        mongodb_uri = os.getenv('MONGODB_URI', db_config.get('mongodb_uri', 'mongodb://localhost:27017'))
-        database_name = db_config.get('database_name', 'Logiq')
-        pool_size = db_config.get('pool_size', 10)
-        self.db = DatabaseManager(mongodb_uri, database_name, pool_size)
+        self.db = None  # MongoDB removed; all persistence via Supabase
 
         self.adapter: Optional[AdapterInterface] = None
         self.health_server = None
@@ -66,13 +61,6 @@ class Logiq:
         self.health_server = start_health_check(self)
 
         self.logger.info("🚀 Starting Logiq (Stoat-only)...")
-
-        try:
-            await self.db.connect()
-            self.logger.info("✅ Database connected")
-        except Exception as e:
-            self.logger.error(f"❌ Database connection failed: {e}", exc_info=True)
-            sys.exit(1)
 
         # Warm up Supabase async client
         try:
@@ -149,10 +137,6 @@ class Logiq:
         self.logger.info("🛑 Shutting down bot...")
         if self.health_server:
             self.health_server.shutdown()
-        try:
-            await self.db.disconnect()
-        except Exception:
-            pass
         try:
             await close_supabase()
         except Exception:
