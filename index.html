@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StoatMod — The Best All-in-One Bot for stoat.chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brand-300: #7cc5fc;
+  --brand-400: #38a5f8;
+  --brand-500: #0e87e9;
+  --brand-600: #026bc7;
+  --gold-400: #fbbf24;
+  --surface-900: #050810;
+  --surface-800: #0a0f1e;
+  --surface-700: #0f1629;
+  --surface-600: #141d35;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Satoshi', system-ui, sans-serif;
+  background-color: var(--surface-900);
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14,135,233,0.12), transparent),
+    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(14,135,233,0.05), transparent);
+}
+
+h1,h2,h3,h4 { font-family: 'Cabinet Grotesk', system-ui, sans-serif; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #050810; }
+::-webkit-scrollbar-thumb { background: #1a2540; border-radius: 3px; }
+
+/* Utilities */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+.gradient-text {
+  background: linear-gradient(135deg, #7cc5fc, #38a5f8, #93c5fd);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.glass-card {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+}
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px; border-radius: 12px; background: var(--brand-500);
+  color: white; font-weight: 700; font-size: 14px; text-decoration: none;
+  transition: all 0.2s; cursor: pointer; border: none;
+}
+.btn-primary:hover { background: var(--brand-400); transform: translateY(-2px); box-shadow: 0 0 30px rgba(14,135,233,0.4); }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12);
+  color: white; font-weight: 700; font-size: 14px; text-decoration: none;
+  transition: all 0.2s; cursor: pointer; background: transparent;
+}
+.btn-outline:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.05); transform: translateY(-2px); }
+.btn-gold {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 18px; border-radius: 12px; border: 1px solid rgba(251,191,36,0.4);
+  color: var(--gold-400); font-weight: 700; font-size: 13px; text-decoration: none;
+  transition: all 0.2s; cursor: pointer; background: transparent;
+}
+.btn-gold:hover { border-color: var(--gold-400); background: rgba(251,191,36,0.08); box-shadow: 0 0 20px rgba(251,191,36,0.15); }
+
+/* ── ANNOUNCEMENT BANNER ──────────────────────────────────── */
+.announcement-banner {
+  background: linear-gradient(90deg, rgba(14,135,233,0.15), rgba(14,135,233,0.08), rgba(99,102,241,0.1));
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-size: 13px; position: relative;
+}
+.announcement-banner .pill {
+  padding: 2px 12px; border-radius: 999px;
+  background: rgba(14,135,233,0.2); border: 1px solid rgba(56,165,248,0.3);
+  color: #7cc5fc; font-size: 11px; font-weight: 700; text-decoration: none;
+  transition: all 0.2s;
+}
+.announcement-banner .pill:hover { background: rgba(14,135,233,0.3); }
+.close-banner {
+  position: absolute; right: 16px; background: none; border: none;
+  color: rgba(255,255,255,0.4); cursor: pointer; font-size: 16px; line-height: 1;
+  transition: color 0.15s;
+}
+.close-banner:hover { color: rgba(255,255,255,0.7); }
+
+/* ── NAVBAR ───────────────────────────────────────────────── */
+.navbar {
+  position: sticky; top: 0; z-index: 50;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(5,8,16,0.85); backdrop-filter: blur(20px);
+}
+.navbar-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px; max-width: 1200px; margin: 0 auto; padding: 0 24px;
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #38a5f8, #026bc7);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 20px rgba(14,135,233,0.35);
+  overflow: hidden;
+}
+.logo-text { font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; font-size: 20px; }
+.nav-center { display: flex; gap: 4px; }
+.nav-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 8px 12px; border-radius: 10px; border: none;
+  background: none; color: rgba(255,255,255,0.65); font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; font-family: inherit; position: relative;
+}
+.nav-btn:hover { color: white; background: rgba(255,255,255,0.06); }
+.nav-btn svg { transition: transform 0.2s; }
+.nav-btn.active svg { transform: rotate(180deg); }
+.nav-right { display: flex; align-items: center; gap: 8px; }
+.nav-lang {
+  display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+  border-radius: 10px; border: none; background: none;
+  color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.nav-lang:hover { color: white; background: rgba(255,255,255,0.06); }
+
+/* Dropdown */
+.dropdown-wrapper { position: relative; }
+.dropdown-menu {
+  position: absolute; top: calc(100% + 8px); left: 0;
+  min-width: 220px;
+  background: rgba(10,15,30,0.97); border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px; padding: 6px; backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  display: none; z-index: 99;
+  animation: dropIn 0.15s ease;
+}
+.dropdown-wrapper:hover .dropdown-menu { display: block; }
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.dropdown-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 12px; border-radius: 10px; text-decoration: none;
+  transition: background 0.15s;
+}
+.dropdown-item:hover { background: rgba(255,255,255,0.06); }
+.dropdown-item-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(14,135,233,0.12); color: #38a5f8;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.dropdown-item-label { font-size: 13px; font-weight: 700; color: white; }
+.dropdown-item-desc { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+/* ── HERO ─────────────────────────────────────────────────── */
+.hero {
+  min-height: 90vh; display: flex; align-items: center;
+  position: relative; overflow: hidden; padding: 80px 0;
+}
+.hero-grid-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.hero-inner {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+  align-items: center; width: 100%;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 999px;
+  border: 1px solid rgba(14,135,233,0.35);
+  background: rgba(14,135,233,0.1); color: #7cc5fc;
+  font-size: 13px; font-weight: 700; margin-bottom: 28px;
+}
+.hero-h1 {
+  font-size: clamp(44px, 5.5vw, 70px); font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.02em; margin-bottom: 24px;
+}
+.hero-sub { font-size: 17px; color: rgba(255,255,255,0.55); line-height: 1.7; max-width: 480px; margin-bottom: 36px; }
+.hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 36px; }
+.hero-social-proof { display: flex; align-items: center; gap: 16px; }
+.avatars { display: flex; }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid var(--surface-900); margin-left: -8px;
+}
+.avatar:first-child { margin-left: 0; }
+.proof-text { font-size: 13px; color: rgba(255,255,255,0.5); }
+.proof-text strong { color: white; }
+
+/* Hero illustration */
+.hero-illustration {
+  position: relative; height: 500px;
+  display: flex; align-items: center; justify-content: center;
+}
+.blob {
+  position: absolute; border-radius: 50%; filter: blur(60px);
+  animation: floatBig 6s ease-in-out infinite;
+}
+@keyframes floatBig {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+.blob-1 { width: 320px; height: 320px; background: rgba(14,135,233,0.1); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.blob-2 { width: 200px; height: 200px; background: rgba(99,102,241,0.07); top: 15%; right: 15%; animation-delay: 1s; }
+.blob-3 { width: 240px; height: 240px; background: rgba(14,135,233,0.06); bottom: 10%; left: 5%; animation-delay: 2s; }
+
+.mock-window {
+  background: linear-gradient(135deg, rgba(14,135,233,0.09), rgba(5,8,16,0.92));
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px; width: 340px; overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(14,135,233,0.1);
+  position: relative; z-index: 2;
+}
+.window-titlebar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot-r { background: rgba(255,90,90,0.6); }
+.dot-y { background: rgba(255,190,50,0.6); }
+.dot-g { background: rgba(80,200,100,0.6); }
+.url-bar {
+  flex: 1; margin: 0 12px; height: 22px; border-radius: 6px;
+  background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;
+}
+.url-bar span { font-size: 10px; color: rgba(255,255,255,0.25); }
+.window-body { padding: 16px; }
+
+/* Server header */
+.server-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+}
+.server-avatar {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, #38a5f8, #818cf8);
+  display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.server-name { font-weight: 800; font-size: 14px; }
+.server-online { font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 6px; }
+.online-dot { width: 6px; height: 6px; border-radius: 50%; background: #34d399; display: inline-block; }
+.premium-pill {
+  margin-left: auto; padding: 2px 10px; border-radius: 999px;
+  background: rgba(14,135,233,0.18); border: 1px solid rgba(14,135,233,0.3);
+  color: #7cc5fc; font-size: 10px; font-weight: 800;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px;
+}
+.stat-box {
+  border-radius: 12px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 8px; text-align: center;
+}
+.stat-val { font-family: 'Cabinet Grotesk', sans-serif; font-size: 16px; font-weight: 800; color: #7cc5fc; }
+.stat-label { font-size: 9px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+
+/* Activity list */
+.activity-title { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.activity-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px; border-radius: 8px; margin-bottom: 4px;
+  transition: background 0.15s;
+}
+.activity-item:hover { background: rgba(255,255,255,0.04); }
+.activity-emoji { font-size: 14px; }
+.activity-text { font-size: 10.5px; color: rgba(255,255,255,0.65); flex: 1; }
+.activity-text strong { color: white; font-weight: 700; }
+.activity-time { font-size: 9px; color: rgba(255,255,255,0.2); }
+.warn { color: #fbbf24; }
+.ban { color: #f87171; }
+.mute { color: #fb923c; }
+.mod-name { color: #7cc5fc; }
+
+/* Module chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip {
+  font-size: 10px; padding: 3px 10px; border-radius: 999px;
+  background: rgba(14,135,233,0.13); border: 1px solid rgba(14,135,233,0.25);
+  color: #7cc5fc; font-weight: 700;
+}
+
+/* Floating badges */
+.float-badge {
+  position: absolute; z-index: 3;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 8px 12px; backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.fb-top-right { top: 56px; right: 0; animation: float1 5s ease-in-out infinite; }
+.fb-bottom-left { bottom: 80px; left: 0; animation: float2 4s ease-in-out infinite; }
+.fb-mid-left { top: 120px; left: -20px; animation: float3 3.5s ease-in-out infinite; }
+@keyframes float1 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes float2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes float3 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.fb-status { display: flex; align-items: center; gap: 6px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #34d399; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.fb-label { font-size: 12px; font-weight: 700; color: white; }
+.fb-sub { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.fb-big { font-family: 'Cabinet Grotesk', sans-serif; font-size: 22px; font-weight: 800; }
+
+/* ── SECTION COMMON ───────────────────────────────────────── */
+.section { padding: 100px 0; position: relative; }
+.section-divider {
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+}
+.eyebrow {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--brand-400); font-size: 13px; font-weight: 700;
+  margin-bottom: 18px;
+}
+.eyebrow-line { width: 24px; height: 1px; background: var(--brand-400); }
+.section-h2 {
+  font-size: clamp(32px, 4vw, 52px); font-weight: 800; line-height: 1.1;
+  letter-spacing: -0.02em; margin-bottom: 20px;
+}
+
+/* ── SECTION 2: DASHBOARD ─────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+
+/* Mock dashboard card */
+.mock-card { max-width: 420px; }
+.card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.card-avatar {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, #38a5f8, #026bc7);
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+  box-shadow: 0 0 20px rgba(14,135,233,0.25);
+}
+.card-avatar-name { font-weight: 800; font-size: 15px; }
+.card-avatar-sub { font-size: 11px; color: rgba(255,255,255,0.35); }
+.card-body { padding: 20px; }
+
+/* Profile panel */
+.profile-panel {
+  border-radius: 16px; background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 16px; display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+}
+.profile-avatar-wrap { position: relative; }
+.profile-avatar {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: linear-gradient(135deg, #38a5f8, #818cf8);
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+}
+.profile-online {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #34d399; border: 2px solid var(--surface-900);
+}
+.profile-name { font-weight: 800; font-size: 16px; margin-bottom: 2px; }
+.profile-disc { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 4px; }
+.profile-role { font-size: 11px; color: #7cc5fc; font-weight: 700; }
+.profile-badge {
+  margin-left: auto; padding: 4px 10px; border-radius: 999px;
+  background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.25);
+  color: var(--gold-400); font-size: 11px; font-weight: 800;
+}
+
+/* Toggles */
+.toggles-section { margin-bottom: 16px; }
+.toggle-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.toggle-lbl { font-size: 13px; color: rgba(255,255,255,0.72); }
+.toggle-track {
+  width: 40px; height: 20px; border-radius: 10px; position: relative;
+  cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+}
+.toggle-on { background: var(--brand-500); }
+.toggle-off { background: rgba(255,255,255,0.1); }
+.toggle-thumb {
+  position: absolute; top: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: white; transition: left 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+.thumb-on { left: 22px; }
+.thumb-off { left: 2px; }
+
+/* Select */
+.select-row { margin-bottom: 16px; }
+.select-label { font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; }
+.custom-select {
+  width: 100%; padding: 10px 14px; border-radius: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+  color: white; font-size: 13px; cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: border-color 0.15s;
+}
+.custom-select:hover { border-color: rgba(255,255,255,0.15); }
+
+/* Save btn */
+.save-btn {
+  width: 100%; padding: 11px; border-radius: 12px;
+  background: var(--brand-500); border: none; color: white;
+  font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.2s;
+}
+.save-btn:hover { background: #38a5f8; box-shadow: 0 0 30px rgba(14,135,233,0.4); }
+
+/* Dashboard copy */
+.dashboard-copy { }
+.dashboard-copy p { font-size: 16px; color: rgba(255,255,255,0.55); line-height: 1.75; margin-bottom: 18px; }
+.dash-ctas { display: flex; gap: 12px; flex-wrap: wrap; margin: 28px 0; }
+.perks { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.perk { display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.55); }
+
+/* ── FEATURES GRID ────────────────────────────────────────── */
+.features-section { padding: 100px 0; background: none; }
+.features-header { text-align: center; max-width: 600px; margin: 0 auto 60px; }
+.features-header p { font-size: 16px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+.features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.feat-card {
+  border-radius: 20px; padding: 28px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+  transition: all 0.3s;
+}
+.feat-card:hover {
+  transform: translateY(-6px); border-color: rgba(14,135,233,0.3);
+  box-shadow: 0 20px 60px rgba(14,135,233,0.12);
+  background: rgba(255,255,255,0.05);
+}
+.feat-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 20px;
+  transition: transform 0.3s;
+}
+.feat-card:hover .feat-icon { transform: scale(1.1); }
+.feat-title { font-family: 'Cabinet Grotesk', sans-serif; font-size: 19px; font-weight: 800; margin-bottom: 10px; }
+.feat-desc { font-size: 13.5px; color: rgba(255,255,255,0.5); line-height: 1.65; }
+.feat-more {
+  display: flex; align-items: center; gap: 6px; margin-top: 18px;
+  font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.25);
+  transition: color 0.2s;
+}
+.feat-card:hover .feat-more { color: #38a5f8; }
+
+/* ── STATS BAND ───────────────────────────────────────────── */
+.stats-band {
+  padding: 80px 0; position: relative;
+  background: linear-gradient(90deg, rgba(14,135,233,0.07), rgba(14,135,233,0.04), rgba(99,102,241,0.06));
+}
+.stats-band::before, .stats-band::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(14,135,233,0.2), transparent);
+}
+.stats-band::before { top: 0; }
+.stats-band::after { bottom: 0; }
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+.stat-item {
+  padding: 0 40px; text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.07);
+}
+.stat-item:last-child { border-right: none; }
+.stat-big {
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: clamp(40px, 5vw, 60px); font-weight: 800; line-height: 1;
+  background: linear-gradient(135deg, #7cc5fc, #38a5f8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 10px;
+}
+.stat-name { font-weight: 700; font-size: 15px; color: white; margin-bottom: 4px; }
+.stat-sub { font-size: 13px; color: rgba(255,255,255,0.35); }
+
+/* ── PRICING ──────────────────────────────────────────────── */
+.pricing-section { padding: 100px 0; }
+.pricing-header { text-align: center; max-width: 600px; margin: 0 auto 60px; }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; }
+.pricing-card {
+  border-radius: 22px; padding: 30px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  position: relative; display: flex; flex-direction: column;
+}
+.pricing-card.highlighted {
+  background: linear-gradient(160deg, rgba(14,135,233,0.12), rgba(5,8,16,0.7));
+}
+.pricing-card.highlighted::before {
+  content: ''; position: absolute; inset: 0; border-radius: 22px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(14,135,233,0.7), rgba(251,191,36,0.4), rgba(14,135,233,0.2));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.pricing-badge {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  padding: 4px 14px; border-radius: 999px; background: var(--brand-500);
+  font-size: 11px; font-weight: 800; color: white;
+  box-shadow: 0 0 20px rgba(14,135,233,0.5);
+  white-space: nowrap;
+}
+.plan-type {
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.plan-price {
+  font-family: 'Cabinet Grotesk', sans-serif; font-size: 50px; font-weight: 800; line-height: 1;
+  margin-bottom: 4px;
+}
+.plan-period { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 14px; }
+.plan-desc { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.65; margin-bottom: 24px; }
+.plan-cta { margin-bottom: 24px; }
+.feature-list { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+.feature-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
+.check-icon {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+}
+.check-on { background: var(--brand-500); }
+.check-off { background: rgba(255,255,255,0.05); }
+.feature-item.included { color: rgba(255,255,255,0.8); }
+.feature-item.excluded { color: rgba(255,255,255,0.22); text-decoration: line-through; }
+.pricing-note { text-align: center; color: rgba(255,255,255,0.3); font-size: 13px; margin-top: 36px; }
+
+/* ── FOOTER ───────────────────────────────────────────────── */
+.footer { border-top: 1px solid rgba(255,255,255,0.07); padding: 64px 0 32px; }
+.footer-inner { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 48px; }
+.footer-brand p { font-size: 13px; color: rgba(255,255,255,0.4); line-height: 1.7; max-width: 240px; margin: 16px 0 20px; }
+.social-row { display: flex; gap: 8px; }
+.social-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.4); text-decoration: none;
+  transition: all 0.2s; font-size: 14px;
+}
+.social-icon:hover { color: white; border-color: rgba(14,135,233,0.35); background: rgba(14,135,233,0.1); }
+.footer-col h4 { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 16px; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-col a { font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: none; transition: color 0.15s; }
+.footer-col a:hover { color: white; }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.06); padding-top: 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.copyright { font-size: 13px; color: rgba(255,255,255,0.25); }
+.uptime { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.25); }
+.uptime-dot { width: 6px; height: 6px; border-radius: 50%; background: #34d399; }
+
+/* Scroll animations */
+.fade-in {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+.fade-in-delay-1 { transition-delay: 0.1s; }
+.fade-in-delay-2 { transition-delay: 0.2s; }
+.fade-in-delay-3 { transition-delay: 0.3s; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+  .hero-illustration { height: 360px; }
+  .mock-window { width: 300px; }
+  .two-col { grid-template-columns: 1fr; gap: 48px; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 40px 0; }
+  .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); padding: 20px 0; }
+  .stat-item:nth-child(even) { border-left: 1px solid rgba(255,255,255,0.07); padding-left: 30px; }
+  .stat-item:nth-child(n+3) { border-bottom: none; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+  .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
+  .nav-center, .nav-right { display: none; }
+}
+
+@media (max-width: 600px) {
+  .features-grid { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr; }
+  .hero-h1 { font-size: 38px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ANNOUNCEMENT BANNER -->
+<div class="announcement-banner" id="banner">
+  <span style="color:rgba(255,255,255,0.6)">✨ Power up your server with</span>
+  <span style="font-weight:700">StoatMod AI</span>
+  <a href="#features" class="pill">Try it</a>
+  <button class="close-banner" onclick="document.getElementById('banner').remove()">✕</button>
+</div>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="navbar-inner">
+    <!-- Logo -->
+    <a href="/" class="nav-logo">
+      <div class="logo-circle">
+        <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+          <circle cx="18" cy="18" r="18" fill="url(#lg)"/>
+          <ellipse cx="18" cy="21" rx="8" ry="7" fill="white" fill-opacity="0.95"/>
+          <circle cx="15" cy="16.5" r="2.2" fill="#0e87e9"/>
+          <circle cx="21" cy="16.5" r="2.2" fill="#0e87e9"/>
+          <circle cx="15" cy="16.5" r="0.9" fill="#050810"/>
+          <circle cx="21" cy="16.5" r="0.9" fill="#050810"/>
+          <ellipse cx="12" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <ellipse cx="24" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <ellipse cx="12" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+          <ellipse cx="24" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+          <ellipse cx="18" cy="21" rx="1.5" ry="1" fill="#0e87e9"/>
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="36" y2="36">
+              <stop stop-color="#38a5f8"/><stop offset="1" stop-color="#026bc7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="logo-text">StoatMod</span>
+    </a>
+
+    <!-- Center nav -->
+    <nav class="nav-center">
+      <div class="dropdown-wrapper">
+        <button class="nav-btn">
+          Plugins
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="dropdown-menu">
+          <a href="#" class="dropdown-item">
+            <div class="dropdown-item-icon">🛡️</div>
+            <div><div class="dropdown-item-label">Moderation</div><div class="dropdown-item-desc">Keep your server safe</div></div>
+          </a>
+          <a href="#" class="dropdown-item">
+            <div class="dropdown-item-icon">⚡</div>
+            <div><div class="dropdown-item-label">Automod</div><div class="dropdown-item-desc">Automated rule enforcement</div></div>
+          </a>
+          <a href="#" class="dropdown-item">
+            <div class="dropdown-item-icon">👋</div>
+            <div><div class="dropdown-item-label">Welcome Messages</div><div class="dropdown-item-desc">Greet new members</div></div>
+          </a>
+          <a href="#" class="dropdown-item">
+            <div class="dropdown-item-icon">⚙️</div>
+            <div><div class="dropdown-item-label">Custom Commands</div><div class="dropdown-item-desc">Build your own commands</div></div>
+          </a>
+        </div>
+      </div>
+      <div class="dropdown-wrapper">
+        <button class="nav-btn">
+          Resources
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div class="dropdown-menu">
+          <a href="#" class="dropdown-item">
+            <div class="dropdown-item-icon">📖</div>
+            <div><div class="dropdown-item-label">Documentation</div><div class="dropdown-item-desc">Full command reference</div></div>
+          </a>
+          <a href="#" class="dropdown-item">
+            <div class="dropdown-item-icon">💬</div>
+            <div><div class="dropdown-item-label">Support</div><div class="dropdown-item-desc">Get help from our team</div></div>
+          </a>
+          <a href="#" class="dropdown-item">
+            <div class="dropdown-item-icon">📝</div>
+            <div><div class="dropdown-item-label">Blog</div><div class="dropdown-item-desc">Updates and tutorials</div></div>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Right side -->
+    <div class="nav-right">
+      <button class="nav-lang">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+        EN
+      </button>
+      <a href="#pricing" class="btn-gold">✦ Premium</a>
+      <a href="#" class="btn-primary" style="font-size:13px;padding:10px 18px">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+        Login with Stoat
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO SECTION -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <!-- Left -->
+      <div class="fade-in">
+        <div class="hero-badge">
+          <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Now with AI-powered Automod
+        </div>
+        <h1 class="hero-h1">The smartest way to <span class="gradient-text">run your community</span></h1>
+        <p class="hero-sub">StoatMod gives your stoat.chat server next-level moderation, automated rule enforcement, custom commands, leveling, and beautiful welcome messages — all in one powerful bot.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn-primary" style="font-size:15px;padding:14px 28px">
+            Add to Stoat
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#features" class="btn-outline" style="font-size:15px;padding:14px 28px">See features</a>
+        </div>
+        <div class="hero-social-proof">
+          <div class="avatars">
+            <div class="avatar" style="background:radial-gradient(circle at 30% 30%,#38a5f8cc,#38a5f866)"></div>
+            <div class="avatar" style="background:radial-gradient(circle at 30% 30%,#818cf8cc,#818cf866)"></div>
+            <div class="avatar" style="background:radial-gradient(circle at 30% 30%,#34d399cc,#34d39966)"></div>
+            <div class="avatar" style="background:radial-gradient(circle at 30% 30%,#fb923ccc,#fb923c66)"></div>
+            <div class="avatar" style="background:radial-gradient(circle at 30% 30%,#f472b6cc,#f472b666)"></div>
+          </div>
+          <p class="proof-text">Trusted by <strong>2M+ servers</strong></p>
+        </div>
+      </div>
+
+      <!-- Right: Illustration -->
+      <div class="hero-illustration fade-in fade-in-delay-2">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+
+        <div class="mock-window">
+          <div class="window-titlebar">
+            <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+            <div class="url-bar"><span>stoat.chat/dashboard/stoatmod</span></div>
+          </div>
+          <div class="window-body">
+            <div class="server-header">
+              <div class="server-avatar">🐾</div>
+              <div>
+                <div class="server-name">Stoat Gaming Hub</div>
+                <div class="server-online"><span class="online-dot"></span>4,291 online</div>
+              </div>
+              <div class="premium-pill">Premium</div>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-box"><div class="stat-val">14k</div><div class="stat-label">Members</div></div>
+              <div class="stat-box"><div class="stat-val">99</div><div class="stat-label">Safety</div></div>
+              <div class="stat-box"><div class="stat-val">∞</div><div class="stat-label">Cmds</div></div>
+            </div>
+            <div class="activity-title">Recent Actions</div>
+            <div class="activity-item">
+              <span class="activity-emoji">🦊</span>
+              <div class="activity-text"><strong>FoxUser#1234</strong> <span class="warn">warned</span> by <span class="mod-name">AutoMod</span></div>
+              <span class="activity-time">now</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-emoji">🐺</span>
+              <div class="activity-text"><strong>WolfByte#5678</strong> <span class="ban">banned</span> by <span class="mod-name">StoatMod</span></div>
+              <span class="activity-time">2m</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-emoji">🦝</span>
+              <div class="activity-text"><strong>RaccoonDev#9</strong> <span class="mute">muted</span> by <span class="mod-name">AutoMod</span></div>
+              <span class="activity-time">5m</span>
+            </div>
+            <div class="chips">
+              <span class="chip">AutoMod ✓</span>
+              <span class="chip">Levels ✓</span>
+              <span class="chip">Logs ✓</span>
+              <span class="chip">Welcome ✓</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating badges -->
+        <div class="float-badge fb-top-right" style="border-color:rgba(52,211,153,0.2)">
+          <div class="fb-status">
+            <span class="status-dot"></span>
+            <span class="fb-label">Threat blocked</span>
+          </div>
+          <div class="fb-sub">Spam detected & removed</div>
+        </div>
+
+        <div class="float-badge fb-bottom-left" style="border-color:rgba(14,135,233,0.2)">
+          <div class="fb-sub" style="margin-bottom:2px">Messages moderated</div>
+          <div class="fb-big gradient-text">2.4M</div>
+        </div>
+
+        <div class="float-badge fb-mid-left" style="border-color:rgba(251,191,36,0.15)">
+          <div class="fb-status"><span style="color:var(--gold-400)">✦</span><span class="fb-label">XP Reward</span></div>
+          <div class="fb-sub">+250 XP earned</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: DASHBOARD -->
+<section class="section" id="dashboard">
+  <div class="section-divider"></div>
+  <div class="container">
+    <div class="two-col">
+      <!-- Left: Mock dashboard card -->
+      <div class="fade-in">
+        <div class="glass-card mock-card">
+          <div class="card-header">
+            <div class="card-avatar">🐾</div>
+            <div>
+              <div class="card-avatar-name">Stoat Gaming Hub</div>
+              <div class="card-avatar-sub">Bot Settings</div>
+            </div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+              <div style="width:8px;height:8px;border-radius:50%;background:#34d399;animation:pulse 2s infinite"></div>
+              <span style="font-size:12px;color:#34d399;font-weight:700">Online</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <!-- Profile panel -->
+            <div class="profile-panel">
+              <div class="profile-avatar-wrap">
+                <div class="profile-avatar">🤖</div>
+                <div class="profile-online"></div>
+              </div>
+              <div>
+                <div class="profile-name">StoatMod</div>
+                <div class="profile-disc">Bot • #0001</div>
+                <div class="profile-role">Administrator</div>
+              </div>
+              <div class="profile-badge">Premium ✦</div>
+            </div>
+
+            <!-- Toggles -->
+            <div class="toggles-section">
+              <div style="font-size:10px;font-weight:800;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px">Modules</div>
+              <div id="toggles">
+                <!-- Generated by JS -->
+              </div>
+            </div>
+
+            <!-- Activity dropdown -->
+            <div class="select-row">
+              <div class="select-label">Log Filters</div>
+              <button class="custom-select" onclick="cycleSelect(this)">
+                <span>All Activity</span>
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+              </button>
+            </div>
+
+            <!-- Save button -->
+            <button class="save-btn" onclick="handleSave(this)">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Copy -->
+      <div class="dashboard-copy fade-in fade-in-delay-1">
+        <div class="eyebrow"><span class="eyebrow-line"></span>Full Control</div>
+        <h2 class="section-h2">Build your own <span class="gradient-text">unique server bot</span></h2>
+        <p>Every community is different. StoatMod's intuitive dashboard lets you configure every aspect of your bot's behavior — from auto-moderation sensitivity to custom welcome card designs — without writing a single line of code.</p>
+        <p>Toggle modules on and off, set role permissions, customize filters, schedule announcements, and review your full activity log. Your server, your rules.</p>
+        <div class="dash-ctas">
+          <a href="#" class="btn-primary">Open Dashboard <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
+          <a href="#" class="btn-outline">View docs</a>
+        </div>
+        <div class="perks">
+          <div class="perk"><span>✨</span> Zero coding required</div>
+          <div class="perk"><span>⚡</span> Live config sync</div>
+          <div class="perk"><span>🔧</span> Per-channel settings</div>
+          <div class="perk"><span>🔒</span> Role-based access</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: FEATURES GRID -->
+<section class="section features-section" id="features">
+  <div class="section-divider"></div>
+  <div class="container">
+    <div class="features-header fade-in">
+      <div class="eyebrow" style="justify-content:center"><span class="eyebrow-line"></span>What's inside<span class="eyebrow-line"></span></div>
+      <h2 class="section-h2">Everything your server <span class="gradient-text">needs to thrive</span></h2>
+      <p>Six powerful modules, one bot. StoatMod handles the hard work so you can focus on what matters — building a great community.</p>
+    </div>
+    <div class="features-grid fade-in">
+      <div class="feat-card" style="--hover-border:rgba(56,165,248,0.3)">
+        <div class="feat-icon" style="background:linear-gradient(135deg,rgba(56,165,248,0.2),rgba(2,107,199,0.1))">🛡️</div>
+        <div class="feat-title">Moderation</div>
+        <div class="feat-desc">Warn, mute, kick, ban — with full audit trails and customizable strike systems. Give your mods superpowers.</div>
+        <div class="feat-more">Learn more <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:linear-gradient(135deg,rgba(251,191,36,0.2),rgba(245,158,11,0.1))">⚡</div>
+        <div class="feat-title">Automod</div>
+        <div class="feat-desc">AI-powered content filtering catches spam, slurs, invite links, and suspicious behavior before it spreads.</div>
+        <div class="feat-more">Learn more <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:linear-gradient(135deg,rgba(167,139,250,0.2),rgba(139,92,246,0.1))">📜</div>
+        <div class="feat-title">Audit Logs</div>
+        <div class="feat-desc">Every action tracked. Search, filter, and export your server's complete history. Nothing escapes StoatMod.</div>
+        <div class="feat-more">Learn more <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:linear-gradient(135deg,rgba(52,211,153,0.2),rgba(16,185,129,0.1))">👋</div>
+        <div class="feat-title">Welcome Messages</div>
+        <div class="feat-desc">Beautiful, personalized welcome cards with custom backgrounds, user avatars, and dynamic text.</div>
+        <div class="feat-more">Learn more <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:linear-gradient(135deg,rgba(244,114,182,0.2),rgba(236,72,153,0.1))">📈</div>
+        <div class="feat-title">Levels & XP</div>
+        <div class="feat-desc">Reward activity with an engaging leveling system. Custom rank cards, role rewards, and leaderboards.</div>
+        <div class="feat-more">Learn more <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon" style="background:linear-gradient(135deg,rgba(34,211,238,0.2),rgba(6,182,212,0.1))">🖥️</div>
+        <div class="feat-title">Custom Commands</div>
+        <div class="feat-desc">Build slash commands with embedded responses, role triggers, and conditional logic. No coding needed.</div>
+        <div class="feat-more">Learn more <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: STATS BAND -->
+<section class="stats-band fade-in">
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-big">2M+</div>
+        <div class="stat-name">Servers Protected</div>
+        <div class="stat-sub">Across stoat.chat</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-big">50M+</div>
+        <div class="stat-name">Users Managed</div>
+        <div class="stat-sub">And counting daily</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-big">99.9%</div>
+        <div class="stat-name">Uptime</div>
+        <div class="stat-sub">SLA guaranteed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-big">&lt;50ms</div>
+        <div class="stat-name">Avg Response</div>
+        <div class="stat-sub">Lightning fast</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5: PRICING -->
+<section class="pricing-section section" id="pricing">
+  <div class="section-divider"></div>
+  <div class="container">
+    <div class="pricing-header fade-in">
+      <div class="eyebrow" style="justify-content:center"><span class="eyebrow-line"></span>Pricing<span class="eyebrow-line"></span></div>
+      <h2 class="section-h2">Simple, transparent <span class="gradient-text">pricing</span></h2>
+      <p style="font-size:16px;color:rgba(255,255,255,0.5);line-height:1.7">Start for free. Upgrade when you're ready. No hidden fees, no surprises.</p>
+    </div>
+    <div class="pricing-grid fade-in">
+      <!-- Free -->
+      <div class="pricing-card">
+        <div class="plan-type" style="color:rgba(255,255,255,0.4)">Free</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">/ forever</div>
+        <div class="plan-desc">Perfect for small servers getting started with moderation.</div>
+        <div class="plan-cta"><a href="#" class="btn-outline" style="width:100%;justify-content:center">Add to Stoat</a></div>
+        <ul class="feature-list">
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Up to 5,000 members</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Basic auto-moderation</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Welcome messages</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Audit logs (7 days)</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>5 custom commands</li>
+          <li class="feature-item excluded"><div class="check-icon check-off"><span style="color:rgba(255,255,255,0.2);font-size:10px">—</span></div>AI-powered automod</li>
+          <li class="feature-item excluded"><div class="check-icon check-off"><span style="color:rgba(255,255,255,0.2);font-size:10px">—</span></div>Advanced XP system</li>
+        </ul>
+      </div>
+
+      <!-- Premium (highlighted) -->
+      <div class="pricing-card highlighted">
+        <div class="pricing-badge">⚡ Most Popular</div>
+        <div class="plan-type" style="color:var(--brand-300)">Premium</div>
+        <div class="plan-price gradient-text">$4.99</div>
+        <div class="plan-period">/ per month</div>
+        <div class="plan-desc">For growing communities that need powerful tools and customization.</div>
+        <div class="plan-cta"><a href="#" class="btn-primary" style="width:100%;justify-content:center">Upgrade to Premium</a></div>
+        <ul class="feature-list">
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Unlimited members</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>AI-powered automod</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Advanced XP & leveling</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Audit logs (90 days)</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Unlimited custom commands</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Custom rank cards</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Anti-raid protection</li>
+          <li class="feature-item included"><div class="check-icon check-on"><svg width="9" height="9" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Priority support</li>
+        </ul>
+      </div>
+
+      <!-- Lifetime -->
+      <div class="pricing-card">
+        <div class="plan-type" style="color:var(--gold-400)">Lifetime</div>
+        <div class="plan-price" style="color:var(--gold-400)">$49</div>
+        <div class="plan-period">/ one time</div>
+        <div class="plan-desc">Pay once, get Premium features forever. Best long-term value.</div>
+        <div class="plan-cta"><a href="#" class="btn-gold" style="width:100%;justify-content:center">Get Lifetime Access</a></div>
+        <ul class="feature-list">
+          <li class="feature-item included"><div class="check-icon" style="background:rgba(251,191,36,0.2)"><svg width="9" height="9" fill="none" stroke="#fbbf24" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Everything in Premium</li>
+          <li class="feature-item included"><div class="check-icon" style="background:rgba(251,191,36,0.2)"><svg width="9" height="9" fill="none" stroke="#fbbf24" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Lifetime updates included</li>
+          <li class="feature-item included"><div class="check-icon" style="background:rgba(251,191,36,0.2)"><svg width="9" height="9" fill="none" stroke="#fbbf24" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Early access to new features</li>
+          <li class="feature-item included"><div class="check-icon" style="background:rgba(251,191,36,0.2)"><svg width="9" height="9" fill="none" stroke="#fbbf24" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>Exclusive lifetime badge</li>
+          <li class="feature-item included"><div class="check-icon" style="background:rgba(251,191,36,0.2)"><svg width="9" height="9" fill="none" stroke="#fbbf24" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>VIP support channel</li>
+          <li class="feature-item included"><div class="check-icon" style="background:rgba(251,191,36,0.2)"><svg width="9" height="9" fill="none" stroke="#fbbf24" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>No recurring charges</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pricing-note">All plans include our core moderation features. Premium payment handled securely. Cancel anytime.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="/" class="nav-logo">
+          <div class="logo-circle" style="width:32px;height:32px">
+            <span style="color:white;font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:12px">SM</span>
+          </div>
+          <span style="font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:18px">StoatMod</span>
+        </a>
+        <p>The best all-in-one bot for stoat.chat. Trusted by 2M+ servers worldwide.</p>
+        <div class="social-row">
+          <a href="#" class="social-icon" title="Stoat">🐾</a>
+          <a href="#" class="social-icon" title="Twitter">𝕏</a>
+          <a href="#" class="social-icon" title="GitHub">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#">Features</a></li>
+          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Changelog</a></li>
+          <li><a href="#">Roadmap</a></li>
+          <li><a href="#">Status</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#">Documentation</a></li>
+          <li><a href="#">API Reference</a></li>
+          <li><a href="#">Tutorials</a></li>
+          <li><a href="#">Community</a></li>
+          <li><a href="#">Support</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Press Kit</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Cookie Policy</a></li>
+          <li><a href="#">GDPR</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="copyright">© 2026 StoatMod. Not affiliated with stoat.chat™. All rights reserved.</div>
+      <div class="uptime"><span class="uptime-dot"></span>All systems operational</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Toggle switches
+const toggleData = [
+  { label: "Auto-Moderation", on: true },
+  { label: "Welcome Messages", on: true },
+  { label: "Anti-Raid Protection", on: false },
+  { label: "XP & Leveling", on: true },
+  { label: "Reaction Roles", on: false },
+];
+
+const toggleContainer = document.getElementById('toggles');
+toggleData.forEach(t => {
+  const row = document.createElement('div');
+  row.className = 'toggle-label-row';
+  row.innerHTML = `
+    <span class="toggle-lbl">${t.label}</span>
+    <div class="toggle-track ${t.on ? 'toggle-on' : 'toggle-off'}" onclick="flipToggle(this)">
+      <div class="toggle-thumb ${t.on ? 'thumb-on' : 'thumb-off'}"></div>
+    </div>
+  `;
+  toggleContainer.appendChild(row);
+});
+
+function flipToggle(track) {
+  const thumb = track.querySelector('.toggle-thumb');
+  const isOn = track.classList.contains('toggle-on');
+  track.classList.toggle('toggle-on', !isOn);
+  track.classList.toggle('toggle-off', isOn);
+  thumb.classList.toggle('thumb-on', !isOn);
+  thumb.classList.toggle('thumb-off', isOn);
+}
+
+// Select cycle
+const selectOpts = ["All Activity", "Moderation Only", "Joins & Leaves", "Message Deletions", "Role Changes"];
+let selectIdx = 0;
+function cycleSelect(btn) {
+  selectIdx = (selectIdx + 1) % selectOpts.length;
+  btn.querySelector('span').textContent = selectOpts[selectIdx];
+}
+
+// Save button
+function handleSave(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Changes saved!`;
+  btn.style.background = 'rgba(52,211,153,0.2)';
+  btn.style.border = '1px solid rgba(52,211,153,0.3)';
+  btn.style.color = '#34d399';
+  setTimeout(() => {
+    btn.innerHTML = orig;
+    btn.style.background = '';
+    btn.style.border = '';
+    btn.style.color = '';
+  }, 2000);
+}
+
+// Scroll animations
+const faders = document.querySelectorAll('.fade-in');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -50px 0px' });
+faders.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
