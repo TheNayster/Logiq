@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class TempVoice(AdaptedCog):
     """Temporary voice channels cog (Stoat adapter - disabled)"""
 
-    def __init__(self, adapter, db: DatabaseManager, config: dict):
+    def __init__(self, adapter, db, config: dict):
         """Initialize with correct signature (adapter, db, config)"""
         super().__init__(adapter, db, config)
         self.module_config = config.get('modules', {}).get('temp_voice', {})

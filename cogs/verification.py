@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class Verification(AdaptedCog):
     """Verification system cog (Stoat-only)"""
 
-    def __init__(self, adapter, db: DatabaseManager, config: dict):
+    def __init__(self, adapter, db, config: dict):
         super().__init__(adapter, db, config)
         self.module_config = config.get('modules', {}).get('verification', {})
 

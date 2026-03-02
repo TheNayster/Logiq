@@ -57,7 +57,7 @@ class MusicQueue:
 class Music(AdaptedCog):
     """Music system cog (Stoat - text-only queue)"""
 
-    def __init__(self, adapter, db: DatabaseManager, config: dict):
+    def __init__(self, adapter, db, config: dict):
         super().__init__(adapter, db, config)
         self.module_config = config.get('modules', {}).get('music', {})
         self.queues: Dict[str, MusicQueue] = {}

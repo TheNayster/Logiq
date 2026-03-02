@@ -43,7 +43,7 @@ FUN_FACTS = [
 class Games(AdaptedCog):
     """Games and entertainment cog (Stoat-only, text-based)"""
 
-    def __init__(self, adapter, db: DatabaseManager, config: dict):
+    def __init__(self, adapter, db, config: dict):
         super().__init__(adapter, db, config)
         self.module_config = config.get('modules', {}).get('games', {})
 
