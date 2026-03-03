@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Getting Started — StoatMod</title>
+<meta name="description" content="Step-by-step guide to install and deploy StoatMod on your stoat.chat server."/>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand-300:#7cc5fc;--brand-400:#38a5f8;--brand-500:#0e87e9;--brand-600:#026bc7;
+  --gold-400:#fbbf24;--surface-900:#050810;--surface-800:#0a0f1e;--surface-700:#0f1629;--surface-600:#141d35;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Satoshi',system-ui,sans-serif;background:var(--surface-900);color:white;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(14,135,233,0.12),transparent)}
+h1,h2,h3,h4{font-family:'Cabinet Grotesk',system-ui,sans-serif}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#050810}::-webkit-scrollbar-thumb{background:#1a2540;border-radius:3px}
+.container{max-width:900px;margin:0 auto;padding:0 24px}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;background:var(--brand-500);color:white;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--brand-400);transform:translateY(-2px);box-shadow:0 0 30px rgba(14,135,233,0.4)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);color:white;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s}
+.btn-outline:hover{border-color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05)}
+
+/* Nav */
+.navbar{position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(5,8,16,0.85);backdrop-filter:blur(20px)}
+.navbar-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:900px;margin:0 auto;padding:0 24px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-circle{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#38a5f8,#026bc7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(14,135,233,0.35)}
+.logo-text{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:20px}
+.nav-right{display:flex;align-items:center;gap:8px}
+
+/* Page header */
+.page-header{padding:64px 0 48px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;border:1px solid rgba(14,135,233,0.35);background:rgba(14,135,233,0.1);color:#7cc5fc;font-size:13px;font-weight:700;margin-bottom:20px}
+.page-h1{font-size:clamp(36px,5vw,56px);font-weight:800;line-height:1.1;letter-spacing:-0.02em;margin-bottom:16px}
+.gradient-text{background:linear-gradient(135deg,#7cc5fc,#38a5f8,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.page-sub{font-size:17px;color:rgba(255,255,255,0.55);line-height:1.7;max-width:560px;margin:0 auto}
+
+/* Progress steps */
+.steps-nav{display:flex;gap:0;justify-content:center;margin:40px 0 48px;position:relative}
+.steps-nav::before{content:'';position:absolute;top:20px;left:50%;transform:translateX(-50%);width:min(600px,80%);height:1px;background:rgba(255,255,255,0.08)}
+.step-btn{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 20px;background:none;border:none;cursor:pointer;font-family:inherit;transition:all .2s}
+.step-num{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,0.12);background:var(--surface-800);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:rgba(255,255,255,0.3);transition:all .2s}
+.step-label{font-size:12px;color:rgba(255,255,255,0.3);font-weight:600;white-space:nowrap;transition:color .2s}
+.step-btn.active .step-num{background:var(--brand-500);border-color:var(--brand-500);color:white;box-shadow:0 0 20px rgba(14,135,233,0.4)}
+.step-btn.active .step-label{color:white}
+.step-btn.done .step-num{background:rgba(52,211,153,0.15);border-color:rgba(52,211,153,0.4);color:#34d399}
+.step-btn.done .step-label{color:rgba(255,255,255,0.5)}
+
+/* Step panels */
+.step-panel{display:none}
+.step-panel.active{display:block}
+
+/* Cards */
+.card{background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:32px;margin-bottom:20px}
+.card h3{font-size:20px;font-weight:800;margin-bottom:12px}
+.card p{color:rgba(255,255,255,0.6);line-height:1.7;font-size:15px;margin-bottom:16px}
+.card p:last-child{margin-bottom:0}
+
+/* Code blocks */
+.code-block{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;font-family:'Fira Code','Consolas',monospace;font-size:13px;line-height:1.8;overflow-x:auto;margin:16px 0;position:relative}
+.code-block .comment{color:rgba(255,255,255,0.3)}
+.code-block .key{color:#7cc5fc}
+.code-block .val{color:#34d399}
+.copy-btn{position:absolute;top:10px;right:10px;padding:4px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
+.copy-btn:hover{color:white;border-color:rgba(255,255,255,0.25)}
+.copy-btn.copied{color:#34d399;border-color:rgba(52,211,153,0.3)}
+
+/* Steps list */
+.steps-list{counter-reset:step;list-style:none;display:flex;flex-direction:column;gap:16px;margin:16px 0}
+.steps-list li{counter-increment:step;display:flex;gap:14px;align-items:flex-start}
+.steps-list li::before{content:counter(step);width:28px;height:28px;border-radius:50%;background:var(--brand-500);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px}
+.steps-list li span{color:rgba(255,255,255,0.7);font-size:15px;line-height:1.6;padding-top:3px}
+.steps-list li a{color:var(--brand-400);text-decoration:none}
+.steps-list li a:hover{text-decoration:underline}
+
+/* Callout boxes */
+.callout{border-radius:12px;padding:14px 18px;font-size:14px;line-height:1.6;margin:16px 0;display:flex;gap:12px;align-items:flex-start}
+.callout.info{background:rgba(14,135,233,0.08);border:1px solid rgba(14,135,233,0.2);color:rgba(255,255,255,0.7)}
+.callout.warn{background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2);color:rgba(255,255,255,0.7)}
+.callout.success{background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.2);color:rgba(255,255,255,0.7)}
+.callout-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+
+/* Env table */
+.env-table{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0}
+.env-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.env-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top}
+.env-table td:first-child{font-family:'Fira Code','Consolas',monospace;color:#7cc5fc;font-size:12px;white-space:nowrap}
+.env-table td:nth-child(2){color:rgba(255,255,255,0.5)}
+.env-table .req{color:#f87171;font-size:11px;font-weight:700}
+.env-table .opt{color:rgba(255,255,255,0.25);font-size:11px;font-weight:700}
+
+/* Nav buttons */
+.step-nav{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.07)}
+.step-nav-center{text-align:center;font-size:13px;color:rgba(255,255,255,0.3)}
+
+/* Deploy tabs */
+.tab-bar{display:flex;gap:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:4px;margin-bottom:20px;width:fit-content}
+.tab{padding:8px 18px;border-radius:9px;border:none;background:none;color:rgba(255,255,255,0.45);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.tab.active{background:var(--brand-500);color:white}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+@media(max-width:640px){.steps-nav{gap:0}.step-label{display:none}.page-h1{font-size:32px}.step-btn{padding:0 12px}}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="nav-logo">
+      <div class="logo-circle">
+        <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+          <circle cx="18" cy="18" r="18" fill="url(#lg2)"/>
+          <ellipse cx="18" cy="21" rx="8" ry="7" fill="white" fill-opacity="0.95"/>
+          <circle cx="15" cy="16.5" r="2.2" fill="#0e87e9"/><circle cx="21" cy="16.5" r="2.2" fill="#0e87e9"/>
+          <circle cx="15" cy="16.5" r="0.9" fill="#050810"/><circle cx="21" cy="16.5" r="0.9" fill="#050810"/>
+          <ellipse cx="12" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <ellipse cx="24" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <defs><linearGradient id="lg2" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#38a5f8"/><stop offset="1" stop-color="#026bc7"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span class="logo-text">StoatMod</span>
+    </a>
+    <div class="nav-right">
+      <a href="/docs" class="btn-outline" style="font-size:13px;padding:9px 16px">Docs</a>
+      <a href="https://stoat.chat/bot-invite?bot_id=YOUR_BOT_CLIENT_ID" target="_blank" rel="noopener" class="btn-primary" style="font-size:13px;padding:9px 16px">
+        Add to Stoat
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <div class="eyebrow">🚀 Getting Started</div>
+    <h1 class="page-h1">Set up <span class="gradient-text">StoatMod</span> in minutes</h1>
+    <p class="page-sub">Follow this guide to invite the bot, configure your environment, and get it running on Railway or your own server.</p>
+  </div>
+</div>
+
+<!-- WIZARD -->
+<div class="container" style="padding-bottom:80px">
+
+  <!-- Step nav -->
+  <div class="steps-nav" id="stepsNav">
+    <button class="step-btn active" onclick="goTo(0)" id="sBtn0">
+      <div class="step-num">1</div>
+      <div class="step-label">Invite Bot</div>
+    </button>
+    <button class="step-btn" onclick="goTo(1)" id="sBtn1">
+      <div class="step-num">2</div>
+      <div class="step-label">Bot Credentials</div>
+    </button>
+    <button class="step-btn" onclick="goTo(2)" id="sBtn2">
+      <div class="step-num">3</div>
+      <div class="step-label">Environment</div>
+    </button>
+    <button class="step-btn" onclick="goTo(3)" id="sBtn3">
+      <div class="step-num">4</div>
+      <div class="step-label">Deploy</div>
+    </button>
+    <button class="step-btn" onclick="goTo(4)" id="sBtn4">
+      <div class="step-num">5</div>
+      <div class="step-label">Done!</div>
+    </button>
+  </div>
+
+  <!-- STEP 0: Invite -->
+  <div class="step-panel active" id="step0">
+    <div class="card">
+      <h3>Step 1 — Add StoatMod to your server</h3>
+      <p>Click the button below to open the official Stoat bot invite page. You must have <strong>Manage Server</strong> permission on the target server.</p>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <span>StoatMod uses only the permissions it needs: sending messages, managing roles (for verification), and reading message history (for moderation logging). It never requests admin.</span>
+      </div>
+
+      <div style="margin:24px 0;text-align:center">
+        <a href="https://stoat.chat/bot-invite?bot_id=YOUR_BOT_CLIENT_ID" target="_blank" rel="noopener" class="btn-primary" style="font-size:16px;padding:14px 32px">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          Add StoatMod to Stoat
+        </a>
+      </div>
+
+      <h3 style="margin-top:24px">Required Permissions</h3>
+      <p>When Stoat shows the permissions screen, ensure the following are granted:</p>
+      <ul class="steps-list" style="counter-reset:none;list-style:disc;padding-left:20px">
+        <li style="display:list-item"><span>Read Messages / View Channels</span></li>
+        <li style="display:list-item"><span>Send Messages &amp; Embeds</span></li>
+        <li style="display:list-item"><span>Manage Messages (for automod deletion)</span></li>
+        <li style="display:list-item"><span>Manage Roles (for verification &amp; reaction roles)</span></li>
+        <li style="display:list-item"><span>Kick &amp; Ban Members (for moderation commands)</span></li>
+        <li style="display:list-item"><span>Read Message History</span></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>What is the invite URL format?</h3>
+      <p>Stoat.chat uses this invite URL format (already set up in the button above):</p>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+https://stoat.chat/bot-invite?bot_id=<span style="color:#7cc5fc">YOUR_BOT_CLIENT_ID</span>
+      </div>
+      <p>Replace <code style="color:#7cc5fc;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px">YOUR_BOT_CLIENT_ID</code> with the <strong>Client ID</strong> from your bot's settings page at <a href="https://stoat.chat/settings/bots" target="_blank" style="color:#38a5f8">stoat.chat/settings/bots</a>.</p>
+    </div>
+
+    <div class="step-nav">
+      <div></div>
+      <div class="step-nav-center">Step 1 of 5</div>
+      <button class="btn-primary" onclick="goTo(1)">Next: Get credentials →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: Bot credentials -->
+  <div class="step-panel" id="step1">
+    <div class="card">
+      <h3>Step 2 — Get your bot credentials from Stoat</h3>
+      <p>You need two values from the Stoat developer portal: your <strong>Bot Token</strong> and your <strong>Client ID (Bot ID)</strong>.</p>
+
+      <ol class="steps-list">
+        <li><span>Go to <a href="https://stoat.chat/settings/bots" target="_blank" rel="noopener">stoat.chat/settings/bots</a> and open your bot.</span></li>
+        <li><span>Copy the <strong>Bot Token</strong> — keep this secret! Never share it or commit it to git.</span></li>
+        <li><span>Copy the <strong>Bot ID / Client ID</strong> — this is public-safe and used in the invite URL.</span></li>
+        <li><span>Also copy your own <strong>User ID</strong> from Stoat (run <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">!myid</code> in any server) — this becomes the <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">BOT_OWNER_ID</code>.</span></li>
+      </ol>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span>
+        <span><strong>Never paste your bot token into this website or any public form.</strong> The token is entered only in your private <code>.env</code> file or your hosting platform's secret variables.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Supabase database setup</h3>
+      <p>StoatMod uses Supabase for all persistent data (server settings, user XP, moderation logs, etc.).</p>
+      <ol class="steps-list">
+        <li><span>Create a free project at <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a>.</span></li>
+        <li><span>Go to <strong>Settings → API</strong>. You need the <strong>Project URL</strong>, the <strong>anon key</strong> (public, safe for frontend), and the <strong>service_role key</strong> (secret — backend only).</span></li>
+        <li><span>Run the database migrations provided in <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">apps/logiq-bot/scripts/</code> against your Supabase project to create the required tables.</span></li>
+      </ol>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-outline" onclick="goTo(0)">← Back</button>
+      <div class="step-nav-center">Step 2 of 5</div>
+      <button class="btn-primary" onclick="goTo(2)">Next: Environment vars →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Environment variables -->
+  <div class="step-panel" id="step2">
+    <div class="card">
+      <h3>Step 3 — Configure environment variables</h3>
+      <p>Copy the template below into a file called <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">.env</code> inside <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">apps/logiq-bot/</code> and fill in your values. On Railway/VPS, add these as environment secrets instead.</p>
+
+      <div class="code-block" style="font-size:12px">
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># ── Stoat Bot ─────────────────────────────────────</span>
+<span class="key">STOAT_BOT_TOKEN</span>=<span class="val">your_bot_token_here</span>        <span class="comment"># secret — never expose</span>
+<span class="key">STOAT_BOT_ID</span>=<span class="val">your_bot_id_here</span>           <span class="comment"># public-safe client ID</span>
+<span class="key">BOT_OWNER_ID</span>=<span class="val">your_stoat_user_id</span>         <span class="comment"># your own Stoat user ID</span>
+<span class="key">STOAT_TEST_CHANNEL_ID</span>=                     <span class="comment"># optional startup test channel</span>
+
+<span class="comment"># ── Supabase ───────────────────────────────────────</span>
+<span class="key">SUPABASE_URL</span>=<span class="val">https://xxxx.supabase.co</span>
+<span class="key">SUPABASE_SERVICE_KEY</span>=<span class="val">your_service_role_key</span>  <span class="comment"># secret</span>
+<span class="key">SUPABASE_ANON_KEY</span>=<span class="val">your_anon_key</span>
+
+<span class="comment"># ── Optional AI / Social features ─────────────────</span>
+<span class="key">OPENAI_API_KEY</span>=
+<span class="key">ANTHROPIC_API_KEY</span>=
+<span class="key">TWITCH_CLIENT_ID</span>=
+<span class="key">TWITCH_CLIENT_SECRET</span>=
+<span class="key">YOUTUBE_API_KEY</span>=
+
+<span class="comment"># ── Environment ────────────────────────────────────</span>
+<span class="key">ENVIRONMENT</span>=<span class="val">production</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Variable reference</h3>
+      <table class="env-table">
+        <thead><tr><th>Variable</th><th>Description</th><th>Required?</th></tr></thead>
+        <tbody>
+          <tr><td>STOAT_BOT_TOKEN</td><td>Your bot's secret token from stoat.chat/settings/bots</td><td><span class="req">Required</span></td></tr>
+          <tr><td>STOAT_BOT_ID</td><td>Your bot's client / user ID (used in invite URL)</td><td><span class="req">Required</span></td></tr>
+          <tr><td>BOT_OWNER_ID</td><td>Your own Stoat user ID — gives you admin access to bot commands</td><td><span class="req">Required</span></td></tr>
+          <tr><td>SUPABASE_URL</td><td>Project URL from Supabase → Settings → API</td><td><span class="req">Required</span></td></tr>
+          <tr><td>SUPABASE_SERVICE_KEY</td><td>Service role key — backend only, never expose to frontend</td><td><span class="req">Required</span></td></tr>
+          <tr><td>SUPABASE_ANON_KEY</td><td>Anon public key — safe with RLS enabled</td><td><span class="req">Required</span></td></tr>
+          <tr><td>OPENAI_API_KEY</td><td>For AI Chat module (provider: openai in config.yaml)</td><td><span class="opt">Optional</span></td></tr>
+          <tr><td>ANTHROPIC_API_KEY</td><td>For AI Chat module (provider: anthropic in config.yaml)</td><td><span class="opt">Optional</span></td></tr>
+          <tr><td>TWITCH_CLIENT_ID/SECRET</td><td>For Twitch live alerts</td><td><span class="opt">Optional</span></td></tr>
+          <tr><td>YOUTUBE_API_KEY</td><td>For YouTube upload alerts</td><td><span class="opt">Optional</span></td></tr>
+          <tr><td>STOAT_TEST_CHANNEL_ID</td><td>Channel ID for a startup smoke-test message</td><td><span class="opt">Optional</span></td></tr>
+          <tr><td>ENVIRONMENT</td><td>development | staging | production</td><td><span class="opt">Optional</span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout success">
+        <span class="callout-icon">✅</span>
+        <span>Add <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px">.env</code> to your <code>.gitignore</code> — it should <strong>never</strong> be committed. The repo already includes <code>.env.example</code> as a safe template.</span>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-outline" onclick="goTo(1)">← Back</button>
+      <div class="step-nav-center">Step 3 of 5</div>
+      <button class="btn-primary" onclick="goTo(3)">Next: Deploy →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Deploy -->
+  <div class="step-panel" id="step3">
+    <div class="card">
+      <h3>Step 4 — Deploy the bot</h3>
+      <p>Choose your preferred deployment method:</p>
+
+      <div class="tab-bar">
+        <button class="tab active" onclick="switchTab('railway',this)">🚄 Railway</button>
+        <button class="tab" onclick="switchTab('docker',this)">🐳 Docker</button>
+        <button class="tab" onclick="switchTab('vps',this)">🖥️ VPS / Manual</button>
+      </div>
+
+      <!-- Railway -->
+      <div class="tab-panel active" id="tab-railway">
+        <ol class="steps-list">
+          <li><span>Go to <a href="https://railway.app" target="_blank" rel="noopener">railway.app</a> and create a new project from your GitHub repo.</span></li>
+          <li><span>Set the <strong>Root Directory</strong> to <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">apps/logiq-bot</code> in Railway's service settings.</span></li>
+          <li><span>Add all required environment variables in Railway → Variables (same list from Step 3).</span></li>
+          <li><span>Railway will detect <code>requirements.txt</code> and <code>runtime.txt</code> and build automatically.</span></li>
+          <li><span>The start command is auto-read from <code>railway.json</code>: <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#34d399">python main.py</code></span></li>
+        </ol>
+        <div class="callout info">
+          <span class="callout-icon">📡</span>
+          <span>The bot runs a health server on port <strong>8080</strong>. Railway will automatically expose this for uptime monitoring. You can use it in the <a href="/status" style="color:#38a5f8">Status page</a> too.</span>
+        </div>
+        <div class="code-block" style="font-size:12px">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># railway.json (already in repo — no changes needed)</span>
+{
+  "<span class="key">deploy</span>": {
+    "<span class="key">startCommand</span>": "<span class="val">python main.py</span>",
+    "<span class="key">healthcheckPath</span>": "<span class="val">/health</span>",
+    "<span class="key">healthcheckTimeout</span>": <span class="val">30</span>
+  }
+}
+        </div>
+      </div>
+
+      <!-- Docker -->
+      <div class="tab-panel" id="tab-docker">
+        <div class="code-block" style="font-size:12px">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># From repo root:</span>
+docker compose up stoatmod-bot -d
+        </div>
+        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin-top:12px">Or manually:</p>
+        <div class="code-block" style="font-size:12px">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+cd apps/logiq-bot
+docker build -t stoatmod-bot .
+docker run -d --env-file .env -p 8080:8080 stoatmod-bot
+        </div>
+        <div class="callout info">
+          <span class="callout-icon">📦</span>
+          <span>A <code>compose.yml</code> is available at the monorepo root that starts both the bot and a local Redis (if needed). Edit the service name if required.</span>
+        </div>
+      </div>
+
+      <!-- VPS -->
+      <div class="tab-panel" id="tab-vps">
+        <ol class="steps-list">
+          <li><span>SSH into your VPS and clone the repo.</span></li>
+          <li><span>Install Python 3.11+: <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#34d399">apt install python3.11 python3-pip</code></span></li>
+          <li><span>Install dependencies: <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#34d399">pip install -r requirements.txt</code></span></li>
+          <li><span>Copy <code>.env.example</code> to <code>.env</code> and fill in your values.</span></li>
+          <li><span>Run with systemd or screen: <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#34d399">python main.py</code></span></li>
+        </ol>
+        <div class="code-block" style="font-size:12px">
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<span class="comment"># Example systemd unit — /etc/systemd/system/stoatmod.service</span>
+[Unit]
+Description=StoatMod Bot
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/stoatmod/apps/logiq-bot
+EnvironmentFile=/opt/stoatmod/apps/logiq-bot/.env
+ExecStart=/usr/bin/python3 main.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-outline" onclick="goTo(2)">← Back</button>
+      <div class="step-nav-center">Step 4 of 5</div>
+      <button class="btn-primary" onclick="goTo(4)">Next: Finish →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Done -->
+  <div class="step-panel" id="step4">
+    <div class="card" style="text-align:center;padding:48px 32px">
+      <div style="font-size:64px;margin-bottom:20px">🎉</div>
+      <h3 style="font-size:28px;margin-bottom:12px">StoatMod is live!</h3>
+      <p style="max-width:500px;margin:0 auto 28px">Your bot should now be online in your server. You'll see a startup message in the test channel (if configured) and the bot will respond to <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">!help</code>.</p>
+
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a href="/docs" class="btn-primary">Read the Docs</a>
+        <a href="/status" class="btn-outline">Check Bot Status</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Quick setup commands</h3>
+      <p>Once the bot is in your server, run these commands to finish setup:</p>
+      <table class="env-table">
+        <thead><tr><th>Command</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>!help</td><td>List all available commands</td></tr>
+          <tr><td>!setup</td><td>Interactive server configuration wizard</td></tr>
+          <tr><td>!prefix &lt;char&gt;</td><td>Change the command prefix (default: !)</td></tr>
+          <tr><td>!welcome channel #chan</td><td>Set the welcome message channel</td></tr>
+          <tr><td>!modlog channel #chan</td><td>Set the mod-action log channel</td></tr>
+          <tr><td>!verify setup</td><td>Enable member verification</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-outline" onclick="goTo(3)">← Back</button>
+      <div class="step-nav-center">All done! ✅</div>
+      <a href="/" class="btn-primary">Back to home →</a>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+let current = 0;
+const total = 5;
+
+function goTo(n) {
+  // Hide current
+  document.getElementById('step' + current).classList.remove('active');
+  const oldBtn = document.getElementById('sBtn' + current);
+  oldBtn.classList.remove('active');
+  if (n > current) oldBtn.classList.add('done');
+
+  current = n;
+  document.getElementById('step' + current).classList.add('active');
+  document.getElementById('sBtn' + current).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function copyCode(btn) {
+  const block = btn.closest('.code-block');
+  const text = block.innerText.replace('Copy\n','').replace('Copied!\n','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+</script>
+</body>
+</html>

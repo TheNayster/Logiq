@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — Welcome Message · StoatMod</title>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand-300: #7cc5fc; --brand-400: #38a5f8; --brand-500: #0e87e9; --brand-600: #026bc7;
+  --gold-400: #fbbf24; --surface-900: #050810; --surface-800: #0a0f1e;
+  --surface-700: #0f1629; --surface-600: #141d35; --sidebar-w: 240px;
+}
+html { scroll-behavior: smooth; }
+body { font-family:'Satoshi',system-ui,sans-serif; background:var(--surface-900); color:white;
+  -webkit-font-smoothing:antialiased; min-height:100vh; display:flex; flex-direction:column;
+  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14,135,233,0.09), transparent); }
+h1,h2,h3,h4 { font-family:'Cabinet Grotesk',system-ui,sans-serif; }
+::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:#050810; }
+::-webkit-scrollbar-thumb { background:#1a2540; border-radius:3px; }
+a { text-decoration:none; }
+.topbar { height:56px; border-bottom:1px solid rgba(255,255,255,0.06); background:rgba(5,8,16,0.9);
+  backdrop-filter:blur(20px); display:flex; align-items:center; padding:0 20px;
+  gap:16px; position:sticky; top:0; z-index:50; flex-shrink:0; }
+.topbar-logo { display:flex; align-items:center; gap:8px; color:white; }
+.logo-circle { width:30px; height:30px; border-radius:50%;
+  background:linear-gradient(135deg,#38a5f8,#026bc7); display:flex; align-items:center;
+  justify-content:center; box-shadow:0 0 14px rgba(14,135,233,0.35); }
+.logo-text { font-family:'Cabinet Grotesk',sans-serif; font-weight:800; font-size:17px; }
+.topbar-sep { flex:1; }
+.topbar-breadcrumb { font-size:13px; color:rgba(255,255,255,0.35); display:flex; align-items:center; gap:6px; }
+.topbar-breadcrumb span { color:white; font-weight:600; }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.topbar-status { display:flex; align-items:center; gap:6px; font-size:12px; color:rgba(255,255,255,0.35); }
+.status-dot { width:7px; height:7px; border-radius:50%; background:#34d399; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.btn-home { padding:6px 14px; border-radius:9px; background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.09); color:rgba(255,255,255,0.55); font-size:12px;
+  font-weight:600; transition:all 0.15s; display:inline-flex; align-items:center; gap:6px; }
+.btn-home:hover { color:white; border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.08); }
+.layout { display:flex; flex:1; min-height:0; }
+.sidebar { width:var(--sidebar-w); flex-shrink:0; border-right:1px solid rgba(255,255,255,0.06);
+  background:rgba(10,15,30,0.6); padding:20px 12px; display:flex; flex-direction:column;
+  gap:4px; position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; }
+.sidebar-section-label { font-size:10px; font-weight:800; color:rgba(255,255,255,0.25);
+  text-transform:uppercase; letter-spacing:1.2px; padding:8px 10px 4px; }
+.sidebar-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px;
+  font-size:14px; font-weight:600; color:rgba(255,255,255,0.5); cursor:pointer;
+  transition:all 0.15s; position:relative; }
+.sidebar-item:hover { color:white; background:rgba(255,255,255,0.05); }
+.sidebar-item.active { color:white; background:rgba(14,135,233,0.14); }
+.sidebar-item.active::before { content:''; position:absolute; left:0; top:50%;
+  transform:translateY(-50%); width:3px; height:20px; border-radius:2px; background:var(--brand-400); }
+.sidebar-item-icon { font-size:16px; flex-shrink:0; width:20px; text-align:center; }
+.sidebar-step-badge { margin-left:auto; width:18px; height:18px; border-radius:50%;
+  background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1);
+  font-size:9px; font-weight:800; color:rgba(255,255,255,0.35); display:flex; align-items:center; justify-content:center; }
+.sidebar-item.active .sidebar-step-badge { background:var(--brand-500); border-color:var(--brand-500); color:white; }
+.sidebar-divider { height:1px; background:rgba(255,255,255,0.06); margin:10px 0; }
+.content { flex:1; padding:36px 40px; max-width:800px; animation:fadeIn 0.35s ease both; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.page-header { margin-bottom:32px; }
+.step-label { display:inline-flex; align-items:center; gap:8px; font-size:11px; font-weight:800;
+  text-transform:uppercase; letter-spacing:1.5px; color:var(--brand-400); margin-bottom:10px; }
+.page-h1 { font-size:28px; font-weight:800; letter-spacing:-0.01em; margin-bottom:8px; }
+.page-sub { font-size:14px; color:rgba(255,255,255,0.45); line-height:1.65; max-width:500px; }
+.settings-section { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+  border-radius:16px; margin-bottom:16px; overflow:hidden; }
+.section-head { padding:18px 22px; border-bottom:1px solid rgba(255,255,255,0.06);
+  display:flex; align-items:center; gap:12px; }
+.section-head-icon { width:34px; height:34px; border-radius:10px; display:flex;
+  align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.section-head-title { font-size:15px; font-weight:700; }
+.section-head-sub { font-size:12px; color:rgba(255,255,255,0.35); margin-top:2px; }
+.section-body { padding:22px; display:flex; flex-direction:column; gap:18px; }
+.field { display:flex; flex-direction:column; gap:7px; }
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.field label { font-size:12px; font-weight:700; color:rgba(255,255,255,0.5);
+  text-transform:uppercase; letter-spacing:0.8px; }
+.field input,.field select,.field textarea { padding:10px 14px; border-radius:11px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.09);
+  color:white; font-size:14px; font-family:inherit; transition:border-color 0.2s,box-shadow 0.2s; outline:none; }
+.field input:focus,.field select:focus,.field textarea:focus { border-color:rgba(14,135,233,0.5); box-shadow:0 0 0 3px rgba(14,135,233,0.12); }
+.field input::placeholder,.field textarea::placeholder { color:rgba(255,255,255,0.2); }
+.field select option { background:#0a0f1e; }
+.field textarea { resize:vertical; min-height:100px; }
+.field-hint { font-size:11px; color:rgba(255,255,255,0.25); }
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:2px 0; }
+.toggle-info { }
+.toggle-title { font-size:14px; font-weight:600; margin-bottom:3px; }
+.toggle-desc { font-size:12px; color:rgba(255,255,255,0.35); }
+.toggle-track { width:42px; height:22px; border-radius:11px; position:relative;
+  cursor:pointer; transition:background 0.2s; flex-shrink:0; }
+.toggle-on { background:var(--brand-500); }
+.toggle-off { background:rgba(255,255,255,0.08); }
+.toggle-thumb { position:absolute; top:3px; width:16px; height:16px; border-radius:50%;
+  background:white; transition:left 0.2s; box-shadow:0 1px 4px rgba(0,0,0,0.3); }
+.thumb-on { left:23px; } .thumb-off { left:3px; }
+
+/* Preview card */
+.welcome-preview {
+  background:rgba(14,135,233,0.07); border:1px solid rgba(14,135,233,0.15);
+  border-radius:14px; padding:20px;
+}
+.welcome-preview-label { font-size:11px; font-weight:700; color:rgba(255,255,255,0.3);
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+.discord-msg { display:flex; gap:12px; }
+.discord-avatar { width:38px; height:38px; border-radius:50%;
+  background:linear-gradient(135deg,#38a5f8,#026bc7); flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:18px; }
+.discord-username { font-size:13px; font-weight:700; color:#38a5f8; margin-bottom:4px; }
+.discord-timestamp { font-size:11px; color:rgba(255,255,255,0.25); margin-left:8px; font-weight:400; }
+.discord-text { font-size:13px; color:rgba(255,255,255,0.8); line-height:1.55; }
+.discord-embed { border-left:3px solid #38a5f8; background:rgba(255,255,255,0.04);
+  border-radius:0 8px 8px 0; padding:12px 14px; margin-top:8px; }
+.embed-title { font-size:13px; font-weight:700; color:#38a5f8; margin-bottom:4px; }
+.embed-body { font-size:12px; color:rgba(255,255,255,0.65); line-height:1.5; }
+
+.variable-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.var-chip { padding:3px 10px; border-radius:999px;
+  background:rgba(14,135,233,0.1); border:1px solid rgba(14,135,233,0.2);
+  color:var(--brand-300); font-size:11px; font-weight:700; cursor:pointer;
+  transition:all 0.15s; }
+.var-chip:hover { background:rgba(14,135,233,0.2); }
+
+.admin-notice { background:rgba(251,191,36,0.06); border:1px solid rgba(251,191,36,0.15);
+  border-radius:12px; padding:14px 18px; display:flex; align-items:flex-start; gap:12px; }
+.admin-notice-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.admin-notice-title { font-size:13px; font-weight:700; color:var(--gold-400); margin-bottom:4px; }
+.admin-notice-text { font-size:12px; color:rgba(255,255,255,0.45); line-height:1.6; }
+.admin-notice code { background:rgba(255,255,255,0.07); border-radius:4px; padding:1px 6px; font-size:11px; color:var(--brand-300); }
+
+.nav-buttons { display:flex; align-items:center; justify-content:space-between;
+  margin-top:32px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.06); }
+.btn-back { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:11px;
+  border:1px solid rgba(255,255,255,0.1); background:transparent; color:rgba(255,255,255,0.6);
+  font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; transition:all 0.15s; }
+.btn-back:hover { color:white; border-color:rgba(255,255,255,0.2); background:rgba(255,255,255,0.05); }
+.btn-next { display:inline-flex; align-items:center; gap:8px; padding:11px 24px; border-radius:11px;
+  background:var(--brand-500); border:none; color:white; font-size:14px; font-weight:700;
+  cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.btn-next:hover { background:var(--brand-400); transform:translateY(-2px); box-shadow:0 0 30px rgba(14,135,233,0.4); }
+.btn-save { display:inline-flex; align-items:center; gap:8px; padding:9px 20px; border-radius:10px;
+  background:rgba(14,135,233,0.12); border:1px solid rgba(14,135,233,0.25); color:var(--brand-300);
+  font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.2s; }
+.btn-save:hover { background:rgba(14,135,233,0.2); color:white; }
+@media(max-width:768px) { .sidebar{display:none} .content{padding:24px 20px} .field-row{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="/" class="topbar-logo">
+    <div class="logo-circle">
+      <svg viewBox="0 0 36 36" fill="none" width="30" height="30">
+        <circle cx="18" cy="18" r="18" fill="url(#lg)"/>
+        <ellipse cx="18" cy="21" rx="8" ry="7" fill="white" fill-opacity="0.95"/>
+        <circle cx="15" cy="16.5" r="2.2" fill="#0e87e9"/><circle cx="21" cy="16.5" r="2.2" fill="#0e87e9"/>
+        <circle cx="15" cy="16.5" r="0.9" fill="#050810"/><circle cx="21" cy="16.5" r="0.9" fill="#050810"/>
+        <ellipse cx="12" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+        <ellipse cx="24" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+        <ellipse cx="12" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+        <ellipse cx="24" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+        <ellipse cx="18" cy="21" rx="1.5" ry="1" fill="#0e87e9"/>
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#38a5f8"/><stop offset="1" stop-color="#026bc7"/></linearGradient></defs>
+      </svg>
+    </div>
+    <span class="logo-text">StoatMod</span>
+  </a>
+  <div class="topbar-breadcrumb">/ <span>Dashboard</span> / Welcome Message</div>
+  <div class="topbar-sep"></div>
+  <div class="topbar-right">
+    <a href="/" class="btn-home">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Home
+    </a>
+  </div>
+</div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section-label">Setup</div>
+    <a href="/dashboard/general" class="sidebar-item">
+      <span class="sidebar-item-icon">⚙️</span>General<span class="sidebar-step-badge">1</span>
+    </a>
+    <a href="/dashboard/welcome" class="sidebar-item active">
+      <span class="sidebar-item-icon">👋</span>Welcome Message<span class="sidebar-step-badge">2</span>
+    </a>
+    <a href="/dashboard/reaction-roles" class="sidebar-item">
+      <span class="sidebar-item-icon">🎭</span>Reaction Roles<span class="sidebar-step-badge">3</span>
+    </a>
+    <a href="/dashboard/moderation" class="sidebar-item">
+      <span class="sidebar-item-icon">🛡️</span>Moderation<span class="sidebar-step-badge">4</span>
+    </a>
+    <a href="/dashboard/automod" class="sidebar-item">
+      <span class="sidebar-item-icon">⚡</span>Automod<span class="sidebar-step-badge">5</span>
+    </a>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">Resources</div>
+    <a href="/docs" class="sidebar-item"><span class="sidebar-item-icon">📖</span>Documentation</a>
+    <a href="/status" class="sidebar-item"><span class="sidebar-item-icon">📡</span>Bot Status</a>
+  </aside>
+  <main class="content">
+    <div class="page-header">
+      <div class="step-label">
+        <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Step 2 of 5
+      </div>
+      <h1 class="page-h1">Welcome Message</h1>
+      <p class="page-sub">Greet new members with a customized message. Use variables to personalize it automatically.</p>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-head">
+        <div class="section-head-icon" style="background:rgba(52,211,153,0.1)">👋</div>
+        <div>
+          <div class="section-head-title">Welcome Toggle</div>
+          <div class="section-head-sub">Send a message when a new member joins</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Enable Welcome Messages</div>
+            <div class="toggle-desc">Post a welcome message when someone joins your server</div>
+          </div>
+          <div class="toggle-track toggle-on" onclick="flipToggle(this)">
+            <div class="toggle-thumb thumb-on"></div>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">DM New Members</div>
+            <div class="toggle-desc">Also send the welcome message via DM</div>
+          </div>
+          <div class="toggle-track toggle-off" onclick="flipToggle(this)">
+            <div class="toggle-thumb thumb-off"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-head">
+        <div class="section-head-icon" style="background:rgba(14,135,233,0.12)">📝</div>
+        <div>
+          <div class="section-head-title">Message Content</div>
+          <div class="section-head-sub">Customize what StoatMod says</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label>Welcome Channel</label>
+          <input type="text" placeholder="#welcome" value="#welcome"/>
+          <div class="field-hint">The channel where welcome messages are posted</div>
+        </div>
+        <div class="field">
+          <label>Message Text</label>
+          <textarea placeholder="Welcome {user} to {server}! You're member #{count}. Check out our rules in #rules.">Welcome {user} to {server}! 🎉 You're member #{count}. Please check out #rules and enjoy your stay!</textarea>
+          <div class="field-hint">Click a variable below to insert it at cursor position</div>
+          <div class="variable-chips">
+            <span class="var-chip" onclick="insertVar('{user}')">&#123;user&#125;</span>
+            <span class="var-chip" onclick="insertVar('{server}')">&#123;server&#125;</span>
+            <span class="var-chip" onclick="insertVar('{count}')">&#123;count&#125;</span>
+            <span class="var-chip" onclick="insertVar('{date}')">&#123;date&#125;</span>
+            <span class="var-chip" onclick="insertVar('{mention}')">&#123;mention&#125;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="section-head">
+        <div class="section-head-icon" style="background:rgba(167,139,250,0.1)">🎨</div>
+        <div>
+          <div class="section-head-title">Embed Options</div>
+          <div class="section-head-sub">Style the welcome card embed</div>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Use Embed</div>
+            <div class="toggle-desc">Display as a rich embed instead of plain text</div>
+          </div>
+          <div class="toggle-track toggle-on" onclick="flipToggle(this)">
+            <div class="toggle-thumb thumb-on"></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Embed Title</label>
+            <input type="text" placeholder="Welcome!" value="Welcome to {server}!"/>
+          </div>
+          <div class="field">
+            <label>Embed Color</label>
+            <input type="color" value="#0e87e9" style="height:42px;padding:4px 8px;cursor:pointer"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Embed Description</label>
+          <textarea style="min-height:70px">Hey {mention}, we're glad to have you here! You are our **#{count}** member. 🐾</textarea>
+        </div>
+        <div class="field">
+          <label>Footer Text</label>
+          <input type="text" placeholder="Enjoy your stay!" value="Powered by StoatMod"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live preview -->
+    <div class="welcome-preview">
+      <div class="welcome-preview-label">Preview</div>
+      <div class="discord-msg">
+        <div class="discord-avatar">🤖</div>
+        <div>
+          <div class="discord-username">StoatMod <span class="discord-timestamp">Today at 12:00</span></div>
+          <div class="discord-text">Welcome to Stoat Gaming Hub!</div>
+          <div class="discord-embed">
+            <div class="embed-title">Welcome to {server}!</div>
+            <div class="embed-body">Hey @NewMember, we're glad to have you here! You are our <strong>#4,292nd</strong> member. 🐾<br><br><em>Powered by StoatMod</em></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-notice" style="margin-top:16px">
+      <div class="admin-notice-icon">🔒</div>
+      <div>
+        <div class="admin-notice-title">Requires Bot Admin Setup</div>
+        <div class="admin-notice-text">Live welcome messages require the bot to be running in your server. Run <code>/config welcome apply</code> after setup, or ask your bot admin to deploy the configuration.</div>
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <a href="/dashboard/general" class="btn-back">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Back
+      </a>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn-save" onclick="handleSave(this)">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/></svg>
+          Save
+        </button>
+        <a href="/dashboard/reaction-roles" class="btn-next">
+          Next: Reaction Roles
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+function flipToggle(track) {
+  const thumb = track.querySelector('.toggle-thumb'), on = track.classList.contains('toggle-on');
+  track.classList.toggle('toggle-on',!on); track.classList.toggle('toggle-off',on);
+  thumb.classList.toggle('thumb-on',!on); thumb.classList.toggle('thumb-off',on);
+}
+function insertVar(v) {
+  const ta = document.querySelector('textarea');
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  ta.value = ta.value.slice(0,s) + v + ta.value.slice(e);
+  ta.selectionStart = ta.selectionEnd = s + v.length;
+  ta.focus();
+}
+function handleSave(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Saved!`;
+  btn.style.background='rgba(52,211,153,0.15)'; btn.style.borderColor='rgba(52,211,153,0.3)'; btn.style.color='#34d399';
+  setTimeout(()=>{btn.innerHTML=orig;btn.style='';},2000);
+}
+</script>
+</body>
+</html>

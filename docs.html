@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Documentation — StoatMod</title>
+<meta name="description" content="Full command reference and API documentation for StoatMod."/>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--brand-300:#7cc5fc;--brand-400:#38a5f8;--brand-500:#0e87e9;--brand-600:#026bc7;--surface-900:#050810;--surface-800:#0a0f1e;--surface-700:#0f1629}
+html{scroll-behavior:smooth}
+body{font-family:'Satoshi',system-ui,sans-serif;background:var(--surface-900);color:white;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:'Cabinet Grotesk',system-ui,sans-serif}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#050810}::-webkit-scrollbar-thumb{background:#1a2540;border-radius:3px}
+a{color:var(--brand-400);text-decoration:none}
+a:hover{text-decoration:underline}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:var(--brand-500);color:white;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--brand-400);text-decoration:none}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);color:white;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s}
+.btn-outline:hover{border-color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05);text-decoration:none}
+.gradient-text{background:linear-gradient(135deg,#7cc5fc,#38a5f8,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.06);padding:20px 0;background:rgba(5,8,16,0.9);backdrop-filter:blur(10px)}
+.main-content{padding:48px 56px 100px;max-width:820px}
+
+/* Sidebar nav */
+.sidebar-top{padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:16px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:0}
+.logo-circle{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#38a5f8,#026bc7);display:flex;align-items:center;justify-content:center}
+.logo-text{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:18px}
+.sidebar-section{padding:6px 20px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:1px;margin-top:12px;margin-bottom:4px}
+.sidebar-link{display:block;padding:8px 20px;font-size:13px;color:rgba(255,255,255,0.55);text-decoration:none;transition:all .15s;border-left:2px solid transparent}
+.sidebar-link:hover{color:white;background:rgba(255,255,255,0.04)}
+.sidebar-link.active{color:#7cc5fc;border-left-color:var(--brand-500);background:rgba(14,135,233,0.07)}
+
+/* Content styles */
+.doc-h2{font-size:32px;font-weight:800;margin-bottom:12px;margin-top:48px;padding-top:48px;border-top:1px solid rgba(255,255,255,0.07)}
+.doc-h2:first-of-type{margin-top:0;padding-top:0;border-top:none}
+.doc-h3{font-size:20px;font-weight:800;margin:28px 0 10px;color:white}
+.doc-p{font-size:15px;color:rgba(255,255,255,0.65);line-height:1.8;margin-bottom:16px}
+.code{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:2px 8px;font-family:'Fira Code','Consolas',monospace;font-size:12.5px;color:#7cc5fc}
+.code-block{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;font-family:'Fira Code','Consolas',monospace;font-size:13px;line-height:1.8;overflow-x:auto;margin:16px 0;color:rgba(255,255,255,0.8)}
+.code-block .cm{color:rgba(255,255,255,0.3)}
+.code-block .ky{color:#7cc5fc}
+.code-block .vl{color:#34d399}
+.code-block .st{color:#fbbf24}
+
+/* Command table */
+.cmd-table{width:100%;border-collapse:collapse;margin:16px 0 28px}
+.cmd-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.cmd-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;font-size:13px}
+.cmd-table td:first-child{font-family:'Fira Code','Consolas',monospace;color:#7cc5fc;font-size:12px;white-space:nowrap}
+.cmd-table td:nth-child(2){color:rgba(255,255,255,0.35)}
+.cmd-table td:nth-child(3){color:rgba(255,255,255,0.6)}
+.perm-tag{display:inline-block;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(14,135,233,0.12);border:1px solid rgba(14,135,233,0.25);color:#7cc5fc}
+.perm-tag.mod{background:rgba(251,191,36,0.1);border-color:rgba(251,191,36,0.2);color:#fbbf24}
+.perm-tag.owner{background:rgba(248,113,113,0.1);border-color:rgba(248,113,113,0.2);color:#f87171}
+
+/* Callout */
+.callout{border-radius:12px;padding:14px 18px;font-size:14px;line-height:1.6;margin:16px 0;display:flex;gap:12px;align-items:flex-start;color:rgba(255,255,255,0.7)}
+.callout.info{background:rgba(14,135,233,0.08);border:1px solid rgba(14,135,233,0.2)}
+.callout.warn{background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.2)}
+.callout-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+
+/* API endpoint cards */
+.endpoint{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px 20px;margin:12px 0}
+.endpoint-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.method{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:800;font-family:'Fira Code',monospace}
+.method.get{background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.2)}
+.path{font-family:'Fira Code','Consolas',monospace;font-size:14px;color:#7cc5fc}
+.endpoint-desc{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.6}
+
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.main-content{padding:32px 24px 80px}}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <a href="/" class="nav-logo">
+        <div class="logo-circle">
+          <svg viewBox="0 0 36 36" fill="none" width="32" height="32">
+            <circle cx="18" cy="18" r="18" fill="url(#lg4)"/>
+            <ellipse cx="18" cy="21" rx="8" ry="7" fill="white" fill-opacity="0.95"/>
+            <circle cx="15" cy="16.5" r="2.2" fill="#0e87e9"/><circle cx="21" cy="16.5" r="2.2" fill="#0e87e9"/>
+            <circle cx="15" cy="16.5" r="0.9" fill="#050810"/><circle cx="21" cy="16.5" r="0.9" fill="#050810"/>
+            <ellipse cx="12" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+            <ellipse cx="24" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+            <defs><linearGradient id="lg4" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#38a5f8"/><stop offset="1" stop-color="#026bc7"/></linearGradient></defs>
+          </svg>
+        </div>
+        <span class="logo-text">StoatMod</span>
+      </a>
+    </div>
+    <div class="sidebar-section">Getting Started</div>
+    <a href="/setup" class="sidebar-link">Installation & Setup</a>
+    <a href="/status" class="sidebar-link">Bot Status</a>
+    <div class="sidebar-section">Commands</div>
+    <a href="#moderation" class="sidebar-link active">Moderation</a>
+    <a href="#leveling" class="sidebar-link">Leveling & XP</a>
+    <a href="#economy" class="sidebar-link">Economy</a>
+    <a href="#tickets" class="sidebar-link">Tickets</a>
+    <a href="#verification" class="sidebar-link">Verification</a>
+    <a href="#giveaways" class="sidebar-link">Giveaways</a>
+    <a href="#social" class="sidebar-link">Social Alerts</a>
+    <a href="#ai" class="sidebar-link">AI Chat</a>
+    <a href="#admin" class="sidebar-link">Admin / Config</a>
+    <div class="sidebar-section">Reference</div>
+    <a href="#config" class="sidebar-link">config.yaml</a>
+    <a href="#api" class="sidebar-link">Bot REST API</a>
+    <a href="#env" class="sidebar-link">Environment Vars</a>
+    <div style="padding:20px;margin-top:16px;border-top:1px solid rgba(255,255,255,0.06)">
+      <a href="https://stoat.chat/bot-invite?bot_id=YOUR_BOT_CLIENT_ID" target="_blank" rel="noopener" class="btn-primary" style="width:100%;justify-content:center;font-size:13px">Add to Stoat</a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <div style="margin-bottom:32px">
+      <div style="font-size:13px;color:rgba(255,255,255,0.3);margin-bottom:12px"><a href="/">StoatMod</a> → Documentation</div>
+      <h1 style="font-size:clamp(32px,4vw,48px);font-weight:800;line-height:1.1;letter-spacing:-0.02em;margin-bottom:12px">Documentation</h1>
+      <p class="doc-p">Full reference for all StoatMod commands, configuration options, and the bot REST API.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="/setup" class="btn-primary" style="font-size:13px;padding:9px 16px">Setup Guide</a>
+        <a href="/status" class="btn-outline" style="font-size:13px;padding:9px 16px">Bot Status</a>
+      </div>
+    </div>
+
+    <!-- ── MODERATION ── -->
+    <h2 class="doc-h2" id="moderation">🛡️ Moderation</h2>
+    <p class="doc-p">Core moderation commands. All actions are logged to your configured mod-log channel and stored in Supabase.</p>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th><th>Permission</th></tr></thead>
+      <tbody>
+        <tr><td>!warn</td><td>@user [reason]</td><td>Issue a warning. Auto-punishes at max_warnings threshold (config.yaml).</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!warnings</td><td>@user</td><td>List a user's active warnings.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!clearwarn</td><td>@user [id]</td><td>Remove a specific or all warnings from a user.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!mute</td><td>@user [duration] [reason]</td><td>Timeout a user. Duration: 10m, 1h, 1d, etc.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!unmute</td><td>@user</td><td>Remove a timeout from a user.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!kick</td><td>@user [reason]</td><td>Kick a member from the server.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!ban</td><td>@user [days] [reason]</td><td>Ban a member. Optionally purge N days of messages.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!unban</td><td>user_id</td><td>Revoke a ban by user ID.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!purge</td><td>[count]</td><td>Bulk-delete up to 100 recent messages in the channel.</td><td><span class="perm-tag mod">Mod</span></td></tr>
+        <tr><td>!modlog</td><td>channel #chan</td><td>Set the channel where mod actions are posted.</td><td><span class="perm-tag owner">Admin</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── LEVELING ── -->
+    <h2 class="doc-h2" id="leveling">📈 Leveling & XP</h2>
+    <p class="doc-p">Members earn XP for every message (with a per-user cooldown to prevent spam farming). Configure XP rates in <span class="code">config.yaml → modules.leveling</span>.</p>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>!rank</td><td>[@user]</td><td>Show your (or another user's) current level and XP.</td></tr>
+        <tr><td>!leaderboard</td><td>[page]</td><td>Top members by XP for this server.</td></tr>
+        <tr><td>!xp</td><td>@user +/-N</td><td>Manually adjust a user's XP (mod only).</td></tr>
+      </tbody>
+    </table>
+    <div class="callout info"><span class="callout-icon">ℹ️</span><span>XP is scoped per-server. The <span class="code">xp_cooldown</span> (seconds) prevents XP farming from rapid messages. Tune <span class="code">xp_per_message</span> and <span class="code">level_up_multiplier</span> in config.yaml.</span></div>
+
+    <!-- ── ECONOMY ── -->
+    <h2 class="doc-h2" id="economy">💰 Economy</h2>
+    <p class="doc-p">Virtual currency system. Starting balance and daily rewards are configurable. Economy is in <strong>gradual rollout</strong> (50% of servers by default).</p>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>!balance</td><td>[@user]</td><td>Check your (or another user's) coin balance.</td></tr>
+        <tr><td>!daily</td><td></td><td>Claim your daily reward (once per 24h).</td></tr>
+        <tr><td>!give</td><td>@user amount</td><td>Transfer coins to another member.</td></tr>
+        <tr><td>!richlist</td><td>[page]</td><td>Economy leaderboard.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── TICKETS ── -->
+    <h2 class="doc-h2" id="tickets">🎫 Tickets</h2>
+    <p class="doc-p">Support ticket system. Max 3 open tickets per user by default. Tickets auto-close after 7 days of inactivity.</p>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>!ticket</td><td>[reason]</td><td>Open a new support ticket.</td></tr>
+        <tr><td>!ticket close</td><td>[reason]</td><td>Close the current ticket channel.</td></tr>
+        <tr><td>!ticket add</td><td>@user</td><td>Add a user to the current ticket.</td></tr>
+        <tr><td>!ticket remove</td><td>@user</td><td>Remove a user from the current ticket.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── VERIFICATION ── -->
+    <h2 class="doc-h2" id="verification">✅ Verification</h2>
+    <p class="doc-p">Gate server access behind a verification step. Supports DM or button-based verification.</p>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>!verify setup</td><td></td><td>Configure verification for this server (interactive).</td></tr>
+        <tr><td>!verify method</td><td>dm | button</td><td>Switch verification method.</td></tr>
+        <tr><td>!verify role</td><td>@role</td><td>Set the role granted after successful verification.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── GIVEAWAYS ── -->
+    <h2 class="doc-h2" id="giveaways">🎉 Giveaways</h2>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>!giveaway start</td><td>duration prize</td><td>Start a giveaway. Duration: 5m–30d.</td></tr>
+        <tr><td>!giveaway end</td><td>[message_id]</td><td>End a giveaway early and pick a winner.</td></tr>
+        <tr><td>!giveaway reroll</td><td>[message_id]</td><td>Pick a new winner for a finished giveaway.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── SOCIAL ALERTS ── -->
+    <h2 class="doc-h2" id="social">📢 Social Alerts</h2>
+    <p class="doc-p">Post automatic alerts when your Twitch, YouTube, or Twitter accounts post new content.</p>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>!alerts twitch</td><td>channel #chan username</td><td>Post Twitch live alerts to a channel.</td></tr>
+        <tr><td>!alerts youtube</td><td>channel #chan yt_channel_id</td><td>Post YouTube upload alerts.</td></tr>
+        <tr><td>!alerts twitter</td><td>channel #chan @handle</td><td>Post new tweets to a channel (requires Twitter API key).</td></tr>
+        <tr><td>!alerts remove</td><td>platform</td><td>Remove an alert subscription.</td></tr>
+        <tr><td>!alerts list</td><td></td><td>Show all active alert subscriptions.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><span class="callout-icon">⚠️</span><span>Social alerts require platform API keys set in your <span class="code">.env</span>. Check the <a href="/setup#step2">environment variables guide</a>.</span></div>
+
+    <!-- ── AI CHAT ── -->
+    <h2 class="doc-h2" id="ai">🤖 AI Chat</h2>
+    <p class="doc-p">AI-powered chat commands using OpenAI or Anthropic. Set <span class="code">provider</span> in <span class="code">config.yaml → modules.ai_chat</span>.</p>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Args</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>!ask</td><td>question</td><td>Ask the AI a question. Response is channel-public.</td></tr>
+        <tr><td>!aichat on/off</td><td></td><td>Toggle AI chat for this server (admin only).</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── ADMIN / CONFIG ── -->
+    <h2 class="doc-h2" id="admin">⚙️ Admin & Configuration</h2>
+    <table class="cmd-table">
+      <thead><tr><th>Command</th><th>Description</th><th>Permission</th></tr></thead>
+      <tbody>
+        <tr><td>!setup</td><td>Interactive server setup wizard (runs through all modules).</td><td><span class="perm-tag owner">Admin</span></td></tr>
+        <tr><td>!prefix &lt;char&gt;</td><td>Change the command prefix (default: !).</td><td><span class="perm-tag owner">Admin</span></td></tr>
+        <tr><td>!welcome channel #chan</td><td>Set the welcome message channel.</td><td><span class="perm-tag owner">Admin</span></td></tr>
+        <tr><td>!welcome message &lt;text&gt;</td><td>Set welcome text. Use {user} and {server} as placeholders.</td><td><span class="perm-tag owner">Admin</span></td></tr>
+        <tr><td>!welcome on/off</td><td>Toggle welcome messages.</td><td><span class="perm-tag owner">Admin</span></td></tr>
+        <tr><td>!module enable/disable</td><td>Enable or disable a feature module.</td><td><span class="perm-tag owner">Admin</span></td></tr>
+        <tr><td>!botstatus</td><td>Show bot version, uptime, and loaded cogs.</td><td><span class="perm-tag">Any</span></td></tr>
+        <tr><td>!help</td><td>Show all available commands.</td><td><span class="perm-tag">Any</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── CONFIG.YAML ── -->
+    <h2 class="doc-h2" id="config">config.yaml Reference</h2>
+    <p class="doc-p">The main config file is at <span class="code">apps/logiq-bot/config.yaml</span>. Environment variables referenced as <span class="code">${VAR}</span> are expanded at startup.</p>
+    <div class="code-block">
+<span class="cm"># Core bot settings</span>
+<span class="ky">bot</span>:
+  <span class="ky">prefix</span>: <span class="st">"!"</span>
+  <span class="ky">case_insensitive</span>: <span class="vl">true</span>
+
+<span class="cm"># Stoat API endpoints</span>
+<span class="ky">stoat</span>:
+  <span class="ky">api_base</span>: <span class="st">"https://stoat.chat/api"</span>
+  <span class="ky">ws_url</span>:  <span class="st">"wss://stoat.chat/socket"</span>
+  <span class="ky">timeout</span>: <span class="vl">30</span>
+
+<span class="cm"># Feature module toggles & settings</span>
+<span class="ky">modules</span>:
+  <span class="ky">moderation</span>:
+    <span class="ky">enabled</span>: <span class="vl">true</span>
+    <span class="ky">max_warnings</span>: <span class="vl">3</span>      <span class="cm"># auto-action at this threshold</span>
+  <span class="ky">leveling</span>:
+    <span class="ky">enabled</span>: <span class="vl">true</span>
+    <span class="ky">xp_per_message</span>: <span class="vl">10</span>
+    <span class="ky">xp_cooldown</span>: <span class="vl">60</span>        <span class="cm"># seconds between XP awards</span>
+    <span class="ky">level_up_multiplier</span>: <span class="vl">1.5</span>
+  <span class="ky">ai_chat</span>:
+    <span class="ky">enabled</span>: <span class="vl">true</span>
+    <span class="ky">provider</span>: <span class="st">"openai"</span>    <span class="cm"># or "anthropic"</span>
+
+<span class="cm"># Optional web dashboard API (enables /stats and /guilds)</span>
+<span class="ky">web</span>:
+  <span class="ky">enabled</span>: <span class="vl">false</span>
+  <span class="ky">host</span>: <span class="st">"0.0.0.0"</span>
+  <span class="ky">port</span>: <span class="vl">8000</span>
+  <span class="ky">cors_origins</span>: [<span class="st">"https://stoatmod.vercel.app"</span>]
+    </div>
+    <div class="callout info"><span class="callout-icon">ℹ️</span><span>Enable <span class="code">web.enabled: true</span> to activate the FastAPI REST server on port 8000. The health check server always runs on port 8080 regardless.</span></div>
+
+    <!-- ── BOT REST API ── -->
+    <h2 class="doc-h2" id="api">Bot REST API</h2>
+    <p class="doc-p">When <span class="code">web.enabled: true</span> in config.yaml, the bot exposes a FastAPI server. The health server (always on) is on <strong>port 8080</strong>.</p>
+
+    <h3 class="doc-h3">Health server (port 8080 — always on)</h3>
+    <div class="endpoint">
+      <div class="endpoint-row"><span class="method get">GET</span><span class="path">/health</span></div>
+      <div class="endpoint-desc">Returns overall health and per-component status (bot, database, adapter, cogs). Used by Railway for uptime checks and by the <a href="/status">status page</a>.</div>
+    </div>
+    <div class="endpoint">
+      <div class="endpoint-row"><span class="method get">GET</span><span class="path">/info</span></div>
+      <div class="endpoint-desc">Returns bot metadata: version, platform, environment, uptime (seconds), and number of loaded cogs.</div>
+    </div>
+
+    <h3 class="doc-h3">Web API server (port 8000 — when web.enabled: true)</h3>
+    <div class="endpoint">
+      <div class="endpoint-row"><span class="method get">GET</span><span class="path">/</span></div>
+      <div class="endpoint-desc">Service info: name, version, platform.</div>
+    </div>
+    <div class="endpoint">
+      <div class="endpoint-row"><span class="method get">GET</span><span class="path">/health</span></div>
+      <div class="endpoint-desc">Same as health server /health. Useful if only one port is exposed.</div>
+    </div>
+    <div class="endpoint">
+      <div class="endpoint-row"><span class="method get">GET</span><span class="path">/stats</span></div>
+      <div class="endpoint-desc">Returns server and user counts from Supabase.</div>
+    </div>
+    <div class="callout warn"><span class="callout-icon">⚠️</span><span>The web API has no authentication in the current implementation. Do not expose sensitive endpoints publicly. CORS origins are configurable in config.yaml → web.cors_origins.</span></div>
+
+    <!-- ── ENV VARS ── -->
+    <h2 class="doc-h2" id="env">Environment Variables</h2>
+    <p class="doc-p">See the full table in the <a href="/setup">Setup Guide → Step 3</a>. The canonical template is <span class="code">apps/logiq-bot/.env.example</span>.</p>
+    <div class="callout info"><span class="callout-icon">🔐</span><span>Never commit <span class="code">.env</span> or expose <span class="code">STOAT_BOT_TOKEN</span> or <span class="code">SUPABASE_SERVICE_KEY</span> to any frontend or public repo. These are backend-only secrets.</span></div>
+
+  </main>
+</div>
+
+<script>
+// Active sidebar link on scroll
+const sections = document.querySelectorAll('[id]');
+const links = document.querySelectorAll('.sidebar-link[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  links.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>

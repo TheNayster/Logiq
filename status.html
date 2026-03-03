@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bot Status — StoatMod</title>
+<meta name="description" content="Live health and uptime status for the StoatMod bot."/>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--brand-500:#0e87e9;--brand-400:#38a5f8;--brand-300:#7cc5fc;--surface-900:#050810;--surface-800:#0a0f1e;--surface-700:#0f1629}
+html{scroll-behavior:smooth}
+body{font-family:'Satoshi',system-ui,sans-serif;background:var(--surface-900);color:white;-webkit-font-smoothing:antialiased;min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(14,135,233,0.1),transparent)}
+h1,h2,h3{font-family:'Cabinet Grotesk',system-ui,sans-serif}
+.container{max-width:800px;margin:0 auto;padding:0 24px}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;background:var(--brand-500);color:white;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--brand-400)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);color:white;font-weight:700;font-size:14px;text-decoration:none;transition:all .2s}
+.btn-outline:hover{border-color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.05)}
+
+/* Nav */
+.navbar{position:sticky;top:0;z-index:50;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(5,8,16,0.85);backdrop-filter:blur(20px)}
+.navbar-inner{display:flex;align-items:center;justify-content:space-between;height:64px;max-width:800px;margin:0 auto;padding:0 24px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-circle{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#38a5f8,#026bc7);display:flex;align-items:center;justify-content:center}
+.logo-text{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:20px}
+.nav-right{display:flex;align-items:center;gap:8px}
+
+/* Page header */
+.page-header{padding:56px 0 40px;text-align:center}
+.page-h1{font-size:clamp(32px,4vw,48px);font-weight:800;line-height:1.1;letter-spacing:-0.02em;margin-bottom:12px}
+.gradient-text{background:linear-gradient(135deg,#7cc5fc,#38a5f8,#93c5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.page-sub{font-size:15px;color:rgba(255,255,255,0.5)}
+
+/* Overall status bar */
+.status-banner{border-radius:16px;padding:20px 24px;margin-bottom:32px;display:flex;align-items:center;gap:16px;border:1px solid}
+.status-banner.healthy{background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.2)}
+.status-banner.degraded{background:rgba(251,191,36,0.07);border-color:rgba(251,191,36,0.2)}
+.status-banner.offline{background:rgba(248,113,113,0.07);border-color:rgba(248,113,113,0.2)}
+.status-banner.loading{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.08)}
+.big-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0}
+.dot-green{background:#34d399;box-shadow:0 0 12px rgba(52,211,153,0.5);animation:pulse 2s infinite}
+.dot-yellow{background:#fbbf24;box-shadow:0 0 12px rgba(251,191,36,0.5)}
+.dot-red{background:#f87171;box-shadow:0 0 12px rgba(248,113,113,0.5)}
+.dot-grey{background:rgba(255,255,255,0.15)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.banner-title{font-family:'Cabinet Grotesk',sans-serif;font-size:20px;font-weight:800}
+.banner-sub{font-size:13px;color:rgba(255,255,255,0.45);margin-top:3px}
+.banner-right{margin-left:auto;text-align:right}
+.last-checked{font-size:12px;color:rgba(255,255,255,0.3)}
+
+/* Checks grid */
+.checks-grid{display:grid;gap:12px;margin-bottom:32px}
+.check-card{background:rgba(255,255,255,0.035);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;transition:border-color .2s}
+.check-card.healthy{border-color:rgba(52,211,153,0.15)}
+.check-card.unhealthy{border-color:rgba(248,113,113,0.15)}
+.check-card.unknown{border-color:rgba(255,255,255,0.07)}
+.check-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.check-icon.healthy{background:rgba(52,211,153,0.1)}
+.check-icon.unhealthy{background:rgba(248,113,113,0.1)}
+.check-icon.unknown{background:rgba(255,255,255,0.04)}
+.check-name{font-weight:800;font-size:15px}
+.check-detail{font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px}
+.check-badge{margin-left:auto;padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;flex-shrink:0}
+.badge-healthy{background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.25)}
+.badge-unhealthy{background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.25)}
+.badge-unknown{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.08)}
+.badge-loading{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.08)}
+
+/* Info section */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px}
+.info-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px 20px}
+.info-label{font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.info-val{font-family:'Cabinet Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--brand-300)}
+.info-sub{font-size:12px;color:rgba(255,255,255,0.3);margin-top:3px}
+
+/* Not configured notice */
+.not-configured{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:40px 32px;text-align:center;margin-bottom:32px}
+.not-configured h3{font-size:20px;font-weight:800;margin-bottom:10px}
+.not-configured p{font-size:14px;color:rgba(255,255,255,0.5);line-height:1.7;max-width:480px;margin:0 auto 20px}
+
+/* Refresh btn */
+.refresh-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.refresh-row h2{font-size:20px;font-weight:800}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.6);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.refresh-btn:hover{color:white;border-color:rgba(255,255,255,0.25)}
+.refresh-btn.spinning svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:640px){.info-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="nav-logo">
+      <div class="logo-circle">
+        <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+          <circle cx="18" cy="18" r="18" fill="url(#lg3)"/>
+          <ellipse cx="18" cy="21" rx="8" ry="7" fill="white" fill-opacity="0.95"/>
+          <circle cx="15" cy="16.5" r="2.2" fill="#0e87e9"/><circle cx="21" cy="16.5" r="2.2" fill="#0e87e9"/>
+          <circle cx="15" cy="16.5" r="0.9" fill="#050810"/><circle cx="21" cy="16.5" r="0.9" fill="#050810"/>
+          <ellipse cx="12" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <ellipse cx="24" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <defs><linearGradient id="lg3" x1="0" y1="0" x2="36" y2="36"><stop stop-color="#38a5f8"/><stop offset="1" stop-color="#026bc7"/></linearGradient></defs>
+        </svg>
+      </div>
+      <span class="logo-text">StoatMod</span>
+    </a>
+    <div class="nav-right">
+      <a href="/docs" class="btn-outline" style="font-size:13px;padding:9px 16px">Docs</a>
+      <a href="/setup" class="btn-primary" style="font-size:13px;padding:9px 16px">Setup Guide</a>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-h1"><span class="gradient-text">Bot Status</span></h1>
+    <p class="page-sub">Live health check from the StoatMod bot API</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:80px" id="root">
+
+  <!-- Will be populated by JS -->
+  <div class="status-banner loading" id="mainBanner">
+    <div class="big-dot dot-grey"></div>
+    <div>
+      <div class="banner-title">Checking status…</div>
+      <div class="banner-sub">Connecting to bot API</div>
+    </div>
+  </div>
+
+  <div class="refresh-row">
+    <h2>Health Checks</h2>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadStatus()">
+      <svg id="refreshIcon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <div class="checks-grid" id="checksGrid">
+    <!-- skeleton -->
+    <div class="check-card unknown"><div class="check-icon unknown">🤖</div><div><div class="check-name">Bot Connection</div><div class="check-detail">Loading…</div></div><span class="check-badge badge-loading">—</span></div>
+    <div class="check-card unknown"><div class="check-icon unknown">🗄️</div><div><div class="check-name">Database</div><div class="check-detail">Loading…</div></div><span class="check-badge badge-loading">—</span></div>
+    <div class="check-card unknown"><div class="check-icon unknown">🔌</div><div><div class="check-name">Stoat Adapter</div><div class="check-detail">Loading…</div></div><span class="check-badge badge-loading">—</span></div>
+    <div class="check-card unknown"><div class="check-icon unknown">📦</div><div><div class="check-name">Cogs / Modules</div><div class="check-detail">Loading…</div></div><span class="check-badge badge-loading">—</span></div>
+  </div>
+
+  <div class="info-grid" id="infoGrid" style="display:none">
+    <div class="info-card"><div class="info-label">Uptime</div><div class="info-val" id="infoUptime">—</div><div class="info-sub">since last restart</div></div>
+    <div class="info-card"><div class="info-label">Modules Loaded</div><div class="info-val" id="infoModules">—</div><div class="info-sub">cogs active</div></div>
+    <div class="info-card"><div class="info-label">Platform</div><div class="info-val" id="infoPlatform">—</div><div class="info-sub">connected network</div></div>
+    <div class="info-card"><div class="info-label">Environment</div><div class="info-val" id="infoEnv">—</div><div class="info-sub">deployment mode</div></div>
+  </div>
+
+  <!-- Config notice shown if BOT_API_URL isn't set -->
+  <div id="notConfigured" style="display:none" class="not-configured">
+    <div style="font-size:48px;margin-bottom:16px">⚙️</div>
+    <h3>Status API not configured</h3>
+    <p>To show live bot status, set the <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;color:#7cc5fc">BOT_API_URL</code> at the top of this page's script to the public URL of your deployed bot (e.g. your Railway service URL) and ensure the bot's <strong>web server is enabled</strong> in <code>config.yaml</code>.</p>
+    <a href="/setup" class="btn-primary" style="margin-top:8px">View setup guide →</a>
+  </div>
+
+</div>
+
+<script>
+// ── Configuration ──────────────────────────────────────────────────────────────
+// Set this to your deployed bot's public URL (Railway/VPS domain).
+// The bot exposes /health and /info on the web port (default 8000, not 8080).
+// Leave empty to show the "not configured" notice instead of dummy data.
+const BOT_API_URL = '';   // e.g. 'https://stoatmod-bot.up.railway.app'
+// ──────────────────────────────────────────────────────────────────────────────
+
+const CHECK_ICONS = { bot:'🤖', database:'🗄️', adapter:'🔌', cogs:'📦' };
+const CHECK_NAMES = { bot:'Bot Connection', database:'Database (Supabase)', adapter:'Stoat Adapter', cogs:'Cogs / Modules' };
+
+function fmtUptime(secs) {
+  if (secs == null) return '—';
+  const d = Math.floor(secs/86400), h = Math.floor((secs%86400)/3600), m = Math.floor((secs%3600)/60);
+  return [d && d+'d', h && h+'h', m+'m'].filter(Boolean).join(' ') || '<1m';
+}
+
+function renderBanner(status) {
+  const el = document.getElementById('mainBanner');
+  const dot = el.querySelector('.big-dot');
+  const title = el.querySelector('.banner-title');
+  const sub = el.querySelector('.banner-sub');
+  el.className = 'status-banner ' + status;
+  if (status === 'healthy') {
+    dot.className = 'big-dot dot-green';
+    title.textContent = 'All systems operational';
+    sub.textContent = 'StoatMod is running normally';
+  } else if (status === 'degraded') {
+    dot.className = 'big-dot dot-yellow';
+    title.textContent = 'Degraded performance';
+    sub.textContent = 'Some checks are failing';
+  } else {
+    dot.className = 'big-dot dot-red';
+    title.textContent = 'Service disruption';
+    sub.textContent = 'Bot may be offline or unreachable';
+  }
+}
+
+function renderChecks(checks) {
+  const grid = document.getElementById('checksGrid');
+  grid.innerHTML = '';
+  for (const [key, data] of Object.entries(checks)) {
+    const ok = data.status === 'healthy';
+    const unknown = data.status === 'unknown';
+    const stateClass = ok ? 'healthy' : unknown ? 'unknown' : 'unhealthy';
+    const icon = CHECK_ICONS[key] || '🔧';
+    const name = CHECK_NAMES[key] || key;
+    let detail = '';
+    if (data.connected != null) detail = data.connected ? 'Connected' : 'Disconnected';
+    if (data.cogs_loaded != null) detail = data.cogs_loaded + ' modules loaded';
+    if (data.adapter) detail = 'Adapter: ' + data.adapter;
+    if (data.error) detail = data.error;
+    grid.innerHTML += `
+      <div class="check-card ${stateClass}">
+        <div class="check-icon ${stateClass}">${icon}</div>
+        <div>
+          <div class="check-name">${name}</div>
+          ${detail ? `<div class="check-detail">${detail}</div>` : ''}
+        </div>
+        <span class="check-badge badge-${stateClass}">${ok ? 'Healthy' : unknown ? 'Unknown' : 'Unhealthy'}</span>
+      </div>`;
+  }
+}
+
+async function loadStatus() {
+  if (!BOT_API_URL) {
+    document.getElementById('notConfigured').style.display = 'block';
+    document.getElementById('mainBanner').style.display = 'none';
+    document.getElementById('checksGrid').style.display = 'none';
+    return;
+  }
+
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+
+  try {
+    const [healthRes, infoRes] = await Promise.all([
+      fetch(BOT_API_URL + '/health', { signal: AbortSignal.timeout(8000) }),
+      fetch(BOT_API_URL + '/info',   { signal: AbortSignal.timeout(8000) }),
+    ]);
+
+    const health = await healthRes.json();
+    const info   = infoRes.ok ? await infoRes.json() : null;
+
+    renderBanner(health.status || 'offline');
+    if (health.checks) renderChecks(health.checks);
+
+    if (info) {
+      document.getElementById('infoGrid').style.display = 'grid';
+      document.getElementById('infoUptime').textContent  = fmtUptime(info.uptime_seconds);
+      document.getElementById('infoModules').textContent = info.cogs_loaded ?? '—';
+      document.getElementById('infoPlatform').textContent= info.platform ?? '—';
+      document.getElementById('infoEnv').textContent     = info.environment ?? '—';
+    }
+  } catch (e) {
+    renderBanner('offline');
+    document.getElementById('checksGrid').innerHTML = `
+      <div class="check-card unhealthy" style="grid-column:1/-1">
+        <div class="check-icon unhealthy">⚠️</div>
+        <div>
+          <div class="check-name">Unable to reach bot API</div>
+          <div class="check-detail">${e.message} — check that BOT_API_URL is correct and the bot is running</div>
+        </div>
+      </div>`;
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+loadStatus();
+// Auto-refresh every 60s
+setInterval(loadStatus, 60_000);
+</script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Get Started — StoatMod</title>
+<meta name="description" content="Set up StoatMod on your stoat.chat server in minutes.">
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --brand-300: #7cc5fc;
+  --brand-400: #38a5f8;
+  --brand-500: #0e87e9;
+  --brand-600: #026bc7;
+  --gold-400: #fbbf24;
+  --surface-900: #050810;
+  --surface-800: #0a0f1e;
+  --surface-700: #0f1629;
+  --surface-600: #141d35;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Satoshi', system-ui, sans-serif;
+  background-color: var(--surface-900);
+  color: white;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(14,135,233,0.13), transparent),
+    radial-gradient(ellipse 40% 30% at 80% 80%, rgba(14,135,233,0.06), transparent);
+}
+h1,h2,h3,h4 { font-family: 'Cabinet Grotesk', system-ui, sans-serif; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #050810; }
+::-webkit-scrollbar-thumb { background: #1a2540; border-radius: 3px; }
+
+/* Navbar */
+.navbar {
+  position: sticky; top: 0; z-index: 50;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(5,8,16,0.85); backdrop-filter: blur(20px);
+}
+.navbar-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 64px; max-width: 1200px; margin: 0 auto; padding: 0 24px;
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-circle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #38a5f8, #026bc7);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 20px rgba(14,135,233,0.35); overflow: hidden;
+}
+.logo-text { font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; font-size: 20px; }
+.nav-right { display: flex; align-items: center; gap: 8px; }
+.btn-ghost {
+  padding: 8px 16px; border-radius: 10px; border: none;
+  background: none; color: rgba(255,255,255,0.55); font-size: 14px;
+  font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none;
+  transition: all 0.15s; display: inline-flex; align-items: center;
+}
+.btn-ghost:hover { color: white; background: rgba(255,255,255,0.06); }
+
+/* Main layout */
+.main {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 60px 24px;
+}
+
+/* Card */
+.onboarding-card {
+  max-width: 560px; width: 100%;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px; backdrop-filter: blur(12px);
+  padding: 52px 48px;
+  position: relative; overflow: hidden;
+  animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-glow {
+  position: absolute; top: -80px; left: 50%; transform: translateX(-50%);
+  width: 300px; height: 200px; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(14,135,233,0.18), transparent 70%);
+  pointer-events: none;
+}
+
+/* Bot avatar */
+.bot-avatar-wrap {
+  display: flex; justify-content: center; margin-bottom: 28px;
+}
+.bot-avatar {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, #38a5f8, #026bc7);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(14,135,233,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+  position: relative;
+}
+.bot-avatar svg { width: 48px; height: 48px; }
+.bot-status {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #34d399; border: 3px solid var(--surface-900);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* Text */
+.card-eyebrow {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  color: var(--brand-400); font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px;
+}
+.card-h1 {
+  font-size: 32px; font-weight: 800; line-height: 1.1;
+  letter-spacing: -0.02em; text-align: center; margin-bottom: 14px;
+}
+.gradient-text {
+  background: linear-gradient(135deg, #7cc5fc, #38a5f8, #93c5fd);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.card-sub {
+  font-size: 15px; color: rgba(255,255,255,0.5); text-align: center;
+  line-height: 1.7; margin-bottom: 36px; max-width: 380px; margin-left: auto; margin-right: auto;
+}
+
+/* Steps preview */
+.steps-preview {
+  display: flex; align-items: center; justify-content: center; gap: 0;
+  margin-bottom: 36px;
+}
+.step-pip {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.step-pip-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: rgba(255,255,255,0.35); font-weight: 700;
+  transition: all 0.3s;
+}
+.step-pip.active .step-pip-dot {
+  background: var(--brand-500); border-color: var(--brand-500);
+  color: white; box-shadow: 0 0 16px rgba(14,135,233,0.5);
+}
+.step-pip-label { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 600; }
+.step-pip.active .step-pip-label { color: var(--brand-300); }
+.step-line {
+  width: 32px; height: 1px;
+  background: rgba(255,255,255,0.08); margin-bottom: 18px;
+}
+
+/* Buttons */
+.btn-primary {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 15px 28px; border-radius: 14px; background: var(--brand-500);
+  color: white; font-weight: 700; font-size: 16px; text-decoration: none;
+  transition: all 0.2s; cursor: pointer; border: none; font-family: inherit;
+}
+.btn-primary:hover {
+  background: var(--brand-400); transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(14,135,233,0.45);
+}
+.btn-primary svg { transition: transform 0.2s; }
+.btn-primary:hover svg { transform: translateX(3px); }
+
+.btn-skip {
+  display: block; text-align: center; margin-top: 14px;
+  color: rgba(255,255,255,0.3); font-size: 13px; text-decoration: none;
+  transition: color 0.15s; cursor: pointer; background: none; border: none;
+  font-family: inherit; width: 100%; padding: 4px;
+}
+.btn-skip:hover { color: rgba(255,255,255,0.6); }
+
+/* Feature pills */
+.feature-pills {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 32px;
+}
+.pill {
+  padding: 5px 13px; border-radius: 999px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+  font-size: 12px; color: rgba(255,255,255,0.5); font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+
+/* Footer */
+.page-footer {
+  text-align: center; padding: 24px;
+  font-size: 12px; color: rgba(255,255,255,0.2);
+}
+.page-footer a { color: rgba(255,255,255,0.35); text-decoration: none; }
+.page-footer a:hover { color: white; }
+
+@media (max-width: 600px) {
+  .onboarding-card { padding: 36px 24px; }
+  .card-h1 { font-size: 26px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="navbar-inner">
+    <a href="/" class="nav-logo">
+      <div class="logo-circle">
+        <svg viewBox="0 0 36 36" fill="none" width="36" height="36">
+          <circle cx="18" cy="18" r="18" fill="url(#lg)"/>
+          <ellipse cx="18" cy="21" rx="8" ry="7" fill="white" fill-opacity="0.95"/>
+          <circle cx="15" cy="16.5" r="2.2" fill="#0e87e9"/>
+          <circle cx="21" cy="16.5" r="2.2" fill="#0e87e9"/>
+          <circle cx="15" cy="16.5" r="0.9" fill="#050810"/>
+          <circle cx="21" cy="16.5" r="0.9" fill="#050810"/>
+          <ellipse cx="12" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <ellipse cx="24" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+          <ellipse cx="12" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+          <ellipse cx="24" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+          <ellipse cx="18" cy="21" rx="1.5" ry="1" fill="#0e87e9"/>
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="36" y2="36">
+              <stop stop-color="#38a5f8"/><stop offset="1" stop-color="#026bc7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="logo-text">StoatMod</span>
+    </a>
+    <div class="nav-right">
+      <a href="/docs" class="btn-ghost">Docs</a>
+      <a href="/status" class="btn-ghost">Status</a>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+  <div style="width:100%;max-width:560px">
+    <div class="onboarding-card">
+      <div class="card-glow"></div>
+
+      <!-- Bot avatar -->
+      <div class="bot-avatar-wrap">
+        <div class="bot-avatar">
+          <svg viewBox="0 0 36 36" fill="none" width="48" height="48">
+            <circle cx="18" cy="18" r="18" fill="url(#lg2)"/>
+            <ellipse cx="18" cy="21" rx="8" ry="7" fill="white" fill-opacity="0.95"/>
+            <circle cx="15" cy="16.5" r="2.2" fill="#0e87e9"/>
+            <circle cx="21" cy="16.5" r="2.2" fill="#0e87e9"/>
+            <circle cx="15" cy="16.5" r="0.9" fill="#050810"/>
+            <circle cx="21" cy="16.5" r="0.9" fill="#050810"/>
+            <ellipse cx="12" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+            <ellipse cx="24" cy="10.5" rx="3" ry="4" fill="white" fill-opacity="0.9"/>
+            <ellipse cx="12" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+            <ellipse cx="24" cy="10.5" rx="1.5" ry="2.5" fill="#0e87e9" fill-opacity="0.5"/>
+            <ellipse cx="18" cy="21" rx="1.5" ry="1" fill="#0e87e9"/>
+            <defs>
+              <linearGradient id="lg2" x1="0" y1="0" x2="36" y2="36">
+                <stop stop-color="#38a5f8"/><stop offset="1" stop-color="#026bc7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="bot-status"></div>
+        </div>
+      </div>
+
+      <!-- Eyebrow -->
+      <div class="card-eyebrow">
+        <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Setup Wizard
+      </div>
+
+      <!-- Heading -->
+      <h1 class="card-h1">Let's get <span class="gradient-text">StoatMod</span> set up</h1>
+      <p class="card-sub">
+        Configure your bot in under 5 minutes. We'll walk you through each module step-by-step.
+        No coding required.
+      </p>
+
+      <!-- Steps preview -->
+      <div class="steps-preview">
+        <div class="step-pip active">
+          <div class="step-pip-dot">1</div>
+          <div class="step-pip-label">General</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-pip">
+          <div class="step-pip-dot">2</div>
+          <div class="step-pip-label">Welcome</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-pip">
+          <div class="step-pip-dot">3</div>
+          <div class="step-pip-label">Roles</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-pip">
+          <div class="step-pip-dot">4</div>
+          <div class="step-pip-label">Moderation</div>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-pip">
+          <div class="step-pip-dot">5</div>
+          <div class="step-pip-label">Automod</div>
+        </div>
+      </div>
+
+      <!-- Feature pills -->
+      <div class="feature-pills">
+        <span class="pill">🛡️ Moderation</span>
+        <span class="pill">⚡ Automod</span>
+        <span class="pill">👋 Welcome</span>
+        <span class="pill">🎭 Reaction Roles</span>
+        <span class="pill">📜 Audit Logs</span>
+      </div>
+
+      <!-- CTA -->
+      <a href="/dashboard/general" class="btn-primary">
+        Get started
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+      <a href="/" class="btn-skip">Skip for now — take me to the home page</a>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="page-footer">
+  © 2026 StoatMod &nbsp;·&nbsp;
+  <a href="#">Privacy</a> &nbsp;·&nbsp;
+  <a href="#">Terms</a>
+</footer>
+
+</body>
+</html>

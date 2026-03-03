@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "name": "stoatmod-website",
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/setup",                    "destination": "/setup.html"                         },
+    { "source": "/docs",                     "destination": "/docs.html"                          },
+    { "source": "/status",                   "destination": "/status.html"                        },
+    { "source": "/onboarding",               "destination": "/onboarding/index.html"              },
+    { "source": "/dashboard",                "destination": "/dashboard/general.html"             },
+    { "source": "/dashboard/general",        "destination": "/dashboard/general.html"             },
+    { "source": "/dashboard/welcome",        "destination": "/dashboard/welcome.html"             },
+    { "source": "/dashboard/reaction-roles", "destination": "/dashboard/reaction-roles.html"      },
+    { "source": "/dashboard/moderation",     "destination": "/dashboard/moderation.html"          },
+    { "source": "/dashboard/automod",        "destination": "/dashboard/automod.html"             }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff"                           },
+        { "key": "X-Frame-Options",        "value": "DENY"                              },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin"   }
+      ]
+    }
+  ]
+}
