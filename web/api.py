@@ -1,4 +1,4 @@
-"""
+﻿"""
 REST API for Logiq (Stoat-only)
 Exposes read-only endpoints consumed by the stoatmod.vercel.app website,
 plus authenticated dashboard read/write endpoints secured by signed tokens.
@@ -116,6 +116,21 @@ def create_app(bot) -> FastAPI:
             "platform": "Stoat.chat",
             "uptime": uptime_str,
             "cogs_loaded": len(getattr(bot, 'loaded_cogs', [])),
+        }
+
+
+    @app.get("/dashboard/handshake")
+    async def dashboard_handshake():
+        """
+        Public reachability check used by the dashboard frontend.
+        Returns service name and version - no token required.
+        Called by the browser on page load to confirm the bot API is reachable.
+        """
+        return {
+            "ok": True,
+            "service": "Logiq Stoat Bot API",
+            "version": "1.0.0",
+            "platform": "Stoat.chat",
         }
 
     # ── Dashboard endpoints (token-protected) ─────────────────────────────────
