@@ -21,6 +21,7 @@ from typing import Dict, Any, Optional
 
 from adapters.cog_base import AdaptedCog, app_command
 from utils.embeds import EmbedFactory, EmbedColor
+from utils.dashboard_auth import generate_dashboard_token
 import database.supabase as supa
 
 logger = logging.getLogger(__name__)
@@ -350,6 +351,56 @@ class Admin(AdaptedCog):
             color=EmbedColor.PRIMARY,
             fields=fields,
             footer="StoatMod — stoatmod.vercel.app"
+        )
+        await self.send_message(channel_id, embed=embed)
+
+
+    # ── dashboard link ──────────────────────────────────────────────────────────
+
+    @app_command(
+        name="dashboard",
+        description="Generate a secure, time-limited dashboard link (Admin)",
+        usage="!dashboard link"
+    )
+    async def dashboard(self, interaction: Dict[str, Any],
+                        subcommand: str = "link"):
+        channel_id = interaction["channel_id"]
+        server_id  = interaction.get("server_id") or interaction.get("guild_id")
+        user_id    = interaction["user_id"]
+
+        if subcommand.lower() != "link":
+            return await self.send_embed(
+                channel_id, "Unknown subcommand",
+                "Usage: `!dashboard link`", EmbedColor.ERROR
+            )
+
+        if not await self._is_admin(server_id, user_id):
+            return await self.send_embed(
+                channel_id, "Permission Denied",
+                "Only **Admins** can generate a dashboard link.",
+                EmbedColor.ERROR
+            )
+
+        try:
+            token = generate_dashboard_token(server_id, user_id)
+        except EnvironmentError as e:
+            return await self.send_embed(
+                channel_id, "⚠️ Configuration Error",
+                str(e), EmbedColor.ERROR
+            )
+
+        base_url = os.getenv("DASHBOARD_BASE_URL", "https://stoatmod.vercel.app").rstrip("/")
+        link = f"{base_url}/dashboard/general?t={token}"
+
+        embed = EmbedFactory.create(
+            title="🔗 Dashboard Link",
+            description=(
+                f"Your secure dashboard link (valid **15 minutes**):\n\n"
+                f"`{link}`\n\n"
+                "⚠️ Do **not** share this link — it grants admin access to your server settings."
+            ),
+            color=EmbedColor.PRIMARY,
+            footer="Link expires in 15 minutes · StoatMod Dashboard"
         )
         await self.send_message(channel_id, embed=embed)
 
