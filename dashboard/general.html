@@ -403,12 +403,12 @@ a { text-decoration: none; }
         <div class="field-row">
           <div class="field">
             <label>Command Prefix</label>
-            <input type="text" placeholder="!" maxlength="5" value="!"/>
+            <input id="input-prefix" type="text" placeholder="!" maxlength="5" value="!"/>
             <div class="field-hint">Used for text commands. Slash commands always use /</div>
           </div>
           <div class="field">
             <label>Bot Nickname</label>
-            <input type="text" placeholder="StoatMod"/>
+            <input id="input-nickname" type="text" placeholder="StoatMod"/>
           </div>
         </div>
         <div class="field">
@@ -436,18 +436,18 @@ a { text-decoration: none; }
         <div class="field-row">
           <div class="field">
             <label>Log Channel</label>
-            <input type="text" placeholder="#mod-logs"/>
+            <input id="input-log-channel" type="text" placeholder="#mod-logs"/>
             <div class="field-hint">Moderation actions are posted here</div>
           </div>
           <div class="field">
             <label>Bot Output Channel</label>
-            <input type="text" placeholder="#bot-commands"/>
+            <input id="input-bot-channel" type="text" placeholder="#bot-commands"/>
             <div class="field-hint">Where bot replies appear</div>
           </div>
         </div>
         <div class="field">
-          <label>Ignored Channels (comma-separated)</label>
-          <input type="text" placeholder="#off-topic, #spam"/>
+        <label>Ignored Channels (comma-separated)</label>
+        <input id="input-ignored" type="text" placeholder="#off-topic, #spam"/>
           <div class="field-hint">StoatMod won't moderate messages in these channels</div>
         </div>
       </div>
@@ -463,31 +463,31 @@ a { text-decoration: none; }
       </div>
       <div class="section-body">
         <div class="toggle-row">
-          <div class="toggle-info">
-            <div class="toggle-title">Slash Commands</div>
-            <div class="toggle-desc">Register / commands for all features</div>
-          </div>
-          <div class="toggle-track toggle-on" onclick="flipToggle(this)">
-            <div class="toggle-thumb thumb-on"></div>
-          </div>
+        <div class="toggle-info">
+        <div class="toggle-title">Slash Commands</div>
+        <div class="toggle-desc">Register / commands for all features</div>
+        </div>
+        <div id="toggle-slash" class="toggle-track toggle-on" onclick="flipToggle(this)">
+        <div class="toggle-thumb thumb-on"></div>
+        </div>
         </div>
         <div class="toggle-row">
-          <div class="toggle-info">
-            <div class="toggle-title">DM Notifications</div>
-            <div class="toggle-desc">Send users a DM when they are warned or muted</div>
-          </div>
-          <div class="toggle-track toggle-off" onclick="flipToggle(this)">
-            <div class="toggle-thumb thumb-off"></div>
-          </div>
+        <div class="toggle-info">
+        <div class="toggle-title">DM Notifications</div>
+        <div class="toggle-desc">Send users a DM when they are warned or muted</div>
+        </div>
+        <div id="toggle-dm" class="toggle-track toggle-off" onclick="flipToggle(this)">
+        <div class="toggle-thumb thumb-off"></div>
+        </div>
         </div>
         <div class="toggle-row">
-          <div class="toggle-info">
-            <div class="toggle-title">Audit Logging</div>
-            <div class="toggle-desc">Record all mod actions to the log channel</div>
-          </div>
-          <div class="toggle-track toggle-on" onclick="flipToggle(this)">
-            <div class="toggle-thumb thumb-on"></div>
-          </div>
+        <div class="toggle-info">
+        <div class="toggle-title">Audit Logging</div>
+        <div class="toggle-desc">Record all mod actions to the log channel</div>
+        </div>
+        <div id="toggle-audit" class="toggle-track toggle-on" onclick="flipToggle(this)">
+        <div class="toggle-thumb thumb-on"></div>
+        </div>
         </div>
       </div>
     </div>
@@ -513,7 +513,23 @@ a { text-decoration: none; }
 </div>
 
 <script>
-/* ── Toggle ─────────────────────────────── */
+/* =========================================================
+   StoatMod Dashboard — general.html
+   Secure token-auth flow: load + save via bot API
+   ========================================================= */
+
+// ── Config ──────────────────────────────────────────────
+// Hosted mode: points to the managed bot API.
+// Self-hosted: set BOT_API_URL in your Vercel env variables,
+//   or replace the string literal below.
+const BOT_API_URL = (typeof __BOT_API_URL__ !== 'undefined' && __BOT_API_URL__)
+  ? __BOT_API_URL__
+  : 'https://api.stoatmod.com';
+
+// ── Token ────────────────────────────────────────────────
+const TOKEN = new URLSearchParams(window.location.search).get('t') || '';
+
+// ── Toggle helpers ───────────────────────────────────────
 function flipToggle(track) {
   const thumb = track.querySelector('.toggle-thumb');
   const on = track.classList.contains('toggle-on');
@@ -522,34 +538,144 @@ function flipToggle(track) {
   thumb.classList.toggle('thumb-on', !on);
   thumb.classList.toggle('thumb-off', on);
 }
-
-/* ── Save feedback ──────────────────────── */
-function handleSave(btn) {
-  const orig = btn.innerHTML;
-  btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Saved!`;
-  btn.style.background = 'rgba(52,211,153,0.15)';
-  btn.style.borderColor = 'rgba(52,211,153,0.3)';
-  btn.style.color = '#34d399';
-  setTimeout(() => { btn.innerHTML = orig; btn.style = ''; }, 2000);
+function isToggleOn(track) { return track.classList.contains('toggle-on'); }
+function setToggle(track, value) {
+  const thumb = track.querySelector('.toggle-thumb');
+  track.classList.toggle('toggle-on', !!value);
+  track.classList.toggle('toggle-off', !value);
+  thumb.classList.toggle('thumb-on', !!value);
+  thumb.classList.toggle('thumb-off', !value);
 }
 
-/* ── Bot API health check ───────────────── */
-// Set BOT_API_URL as a constant below or in your deployment env.
-// For local testing: const BOT_API_URL = 'http://localhost:8000';
-// For production:   const BOT_API_URL = 'https://your-bot-api.example.com';
-const BOT_API_URL = '';  // Leave empty to skip health check
+// ── Toast ────────────────────────────────────────────────
+function showToast(msg, ok = true) {
+  let t = document.getElementById('dashToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'dashToast';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);'
+      + 'opacity:0;transition:all 0.3s;z-index:9999;padding:12px 22px;border-radius:12px;'
+      + 'font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.style.background = ok ? 'rgba(52,211,153,0.15)' : 'rgba(248,113,113,0.15)';
+  t.style.border     = ok ? '1px solid rgba(52,211,153,0.3)' : '1px solid rgba(248,113,113,0.3)';
+  t.style.color      = ok ? '#34d399' : '#f87171';
+  t.textContent      = msg;
+  t.style.opacity    = '1';
+  t.style.transform  = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(60px)'; }, 2800);
+}
 
+// ── No-token banner ──────────────────────────────────────
+function showNoTokenBanner() {
+  const notice = document.querySelector('.admin-notice');
+  if (!notice) return;
+  notice.innerHTML = `
+    <div class="admin-notice-icon">🔗</div>
+    <div>
+      <div class="admin-notice-title">No Dashboard Token Found</div>
+      <div class="admin-notice-text">
+        Run <code>!dashboard link</code> inside your Stoat server to get a secure link.
+        The link is valid for 15 minutes and connects this page directly to your bot.
+      </div>
+    </div>`;
+  notice.style.borderColor = 'rgba(56,165,248,0.3)';
+  notice.style.background  = 'rgba(56,165,248,0.06)';
+}
+
+// ── Populate UI from config ──────────────────────────────
+function populateUI(cfg) {
+  if (!cfg) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+  const setTog = (id, val) => { const el = document.getElementById(id); if (el) setToggle(el, val); };
+
+  setVal('input-prefix',      cfg.prefix);
+  setVal('input-nickname',    cfg.nickname);
+  setVal('input-log-channel', cfg.log_channel_id);
+  setVal('input-bot-channel', cfg.bot_output_channel_id);
+  setVal('input-ignored',     cfg.ignored_channels);
+
+  setTog('toggle-slash',  cfg.slash_commands_enabled  !== false);
+  setTog('toggle-dm',     cfg.dm_notifications_enabled === true);
+  setTog('toggle-audit',  cfg.audit_logging_enabled   !== false);
+}
+
+// ── Collect current UI state ─────────────────────────────
+function collectConfig() {
+  const get = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
+  const tog = id => { const el = document.getElementById(id); return el ? isToggleOn(el) : undefined; };
+  return {
+    prefix:                   get('input-prefix'),
+    nickname:                 get('input-nickname'),
+    log_channel_id:           get('input-log-channel'),
+    bot_output_channel_id:    get('input-bot-channel'),
+    ignored_channels:         get('input-ignored'),
+    slash_commands_enabled:   tog('toggle-slash'),
+    dm_notifications_enabled: tog('toggle-dm'),
+    audit_logging_enabled:    tog('toggle-audit'),
+  };
+}
+
+// ── Load config from bot API ─────────────────────────────
+async function loadConfig() {
+  if (!TOKEN) return;
+  try {
+    const res = await fetch(`${BOT_API_URL}/dashboard/config?t=${encodeURIComponent(TOKEN)}`,
+      { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 403) showToast('⚠️ Token expired — run !dashboard link again', false);
+      return;
+    }
+    const data = await res.json();
+    populateUI(data.config);
+    showToast('✅ Settings loaded');
+  } catch (e) {
+    console.warn('[dashboard] Could not reach bot API:', e);
+  }
+}
+
+// ── Save config to bot API ───────────────────────────────
+async function handleSave(btn) {
+  if (!TOKEN) {
+    showToast('⚠️ No token — run !dashboard link in your server first', false);
+    return;
+  }
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Saving…`;
+  try {
+    const res = await fetch(`${BOT_API_URL}/dashboard/config?t=${encodeURIComponent(TOKEN)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config: collectConfig() }),
+      signal: AbortSignal.timeout(8000)
+    });
+    if (res.ok) {
+      btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Saved!`;
+      btn.style.cssText = 'background:rgba(52,211,153,0.15);border-color:rgba(52,211,153,0.3);color:#34d399';
+      showToast('✅ Settings saved!');
+      setTimeout(() => { btn.innerHTML = orig; btn.style = ''; btn.disabled = false; }, 2200);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      btn.innerHTML = '✗ Error'; btn.style.color = '#f87171';
+      showToast(`✗ Save failed: ${err.detail || res.status}`, false);
+      setTimeout(() => { btn.innerHTML = orig; btn.style = ''; btn.disabled = false; }, 2200);
+    }
+  } catch (e) {
+    btn.innerHTML = '✗ Unreachable'; btn.style.color = '#f87171';
+    showToast('✗ Could not reach bot API', false);
+    setTimeout(() => { btn.innerHTML = orig; btn.style = ''; btn.disabled = false; }, 2200);
+  }
+}
+
+// ── Status check ─────────────────────────────────────────
 async function checkBotStatus() {
   const statusEl = document.getElementById('botStatus');
   const card = document.getElementById('apiStatusCard');
-  const dot = document.getElementById('apiDot');
+  const dot  = document.getElementById('apiDot');
   const text = document.getElementById('apiStatusText');
-
-  if (!BOT_API_URL) {
-    statusEl.innerHTML = `<div class="status-dot" style="background:#6b7280"></div><span>Bot API not configured</span>`;
-    return;
-  }
-
   card.style.display = 'flex';
   try {
     const res = await fetch(`${BOT_API_URL}/health`, { signal: AbortSignal.timeout(5000) });
@@ -558,16 +684,32 @@ async function checkBotStatus() {
       statusEl.innerHTML = `<div class="status-dot"></div><span style="color:#34d399;font-weight:700">Bot online</span>`;
       dot.style.background = '#34d399';
       text.textContent = `Bot online · ${data.status || 'healthy'}`;
-    } else {
-      throw new Error('Non-OK response');
-    }
-  } catch (e) {
+    } else { throw new Error(); }
+  } catch {
     statusEl.innerHTML = `<div class="status-dot" style="background:#f87171"></div><span>Bot offline</span>`;
     dot.style.background = '#f87171';
-    text.textContent = 'Bot API unreachable — changes will be saved locally only.';
+    text.textContent = 'Bot API unreachable — settings cannot be saved right now.';
   }
 }
-checkBotStatus();
+
+// ── ID bindings (add IDs to existing inputs) ──────────────
+// IDs are injected via HTML attributes in the form fields;
+// This block wires any toggle tracks by their data-id attributes.
+document.querySelectorAll('[data-toggle-id]').forEach(el => {
+  el.id = el.dataset.toggleId;
+});
+
+// ── Init ─────────────────────────────────────────────────
+(async () => {
+  if (!TOKEN) {
+    showNoTokenBanner();
+    document.getElementById('botStatus').innerHTML =
+      `<div class="status-dot" style="background:#6b7280"></div><span>No token</span>`;
+  } else {
+    checkBotStatus();
+    await loadConfig();
+  }
+})();
 </script>
 </body>
 </html>
