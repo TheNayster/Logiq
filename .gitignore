@@ -143,3 +143,21 @@ build/
 .tmp/
 *.tmp
 tempfile
+# ── SAFETY GUARDRAIL ─────────────────────────────────────────────────────────
+# This is the BOT branch (stoatmod-dashboard-link).
+# The files below must NEVER be committed here.
+# If you see these in `git status`, you are editing the wrong clone.
+# Use C:\Users\sephi\Documents\GitHub\LogiqSite for all website work.
+
+# Static website files
+index.html
+setup.html
+docs.html
+status.html
+dashboard/
+onboarding/
+vercel.json
+*.html
+
+# Vercel CLI output
+.vercel
