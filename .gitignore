@@ -1,1 +1,45 @@
+# ── Vercel CLI output ─────────────────────────────────────────────────────────
 .vercel
+
+# ── SAFETY GUARDRAIL ─────────────────────────────────────────────────────────
+# This is the WEBSITE branch (stoatmod-website).
+# The files below must NEVER be committed here.
+# If you see these folders in `git status`, you are in the wrong clone.
+# Use C:\Users\sephi\Documents\GitHub\LogiqBot for all bot work.
+
+# Python bot folders
+cogs/
+adapters/
+utils/
+database/
+web/
+scripts/
+tests/
+
+# Python runtime
+.venv/
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+
+# Bot config / secrets
+.env
+.env.local
+.env.*.local
+config.local.yaml
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
