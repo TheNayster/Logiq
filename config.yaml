@@ -109,6 +109,16 @@ logging:
   max_bytes: 10485760
   backup_count: 5
 
+# Web dashboard API (optional — exposes /health /info /stats on port 8000)
+# Set enabled: true if you want the website status page to fetch live data.
+web:
+  enabled: false            # set true to activate the FastAPI server
+  host: "0.0.0.0"
+  port: 8000
+  cors_origins:
+    - "https://stoatmod.vercel.app"
+    - "http://localhost:3000"
+
 # Environment
 environment: "${ENVIRONMENT}"
 
