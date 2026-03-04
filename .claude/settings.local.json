@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show git-filter-repo)",
+      "Bash(pip install git-filter-repo)",
+      "Bash(pip3 install git-filter-repo)"
+    ]
+  }
+}
