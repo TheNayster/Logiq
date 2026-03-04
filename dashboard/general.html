@@ -4,6 +4,9 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Dashboard — General · StoatMod</title>
+<!-- Runtime config: sets window.__CONFIG__.BOT_API_URL from Vercel env vars.
+     Must load before any dashboard JS that calls the bot API.            -->
+<script src="/config.js"></script>
 <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
 <style>
 /* ── RESET & TOKENS ─────────────────────────────────────────── */
@@ -518,13 +521,31 @@ a { text-decoration: none; }
    Secure token-auth flow: load + save via bot API
    ========================================================= */
 
-// ── Config ──────────────────────────────────────────────
-// Hosted mode: points to the managed bot API.
-// Self-hosted: set BOT_API_URL in your Vercel env variables,
-//   or replace the string literal below.
-const BOT_API_URL = (typeof __BOT_API_URL__ !== 'undefined' && __BOT_API_URL__)
-  ? __BOT_API_URL__
-  : 'https://api.stoatmod.com';
+// ── API base URL resolution ──────────────────────────────
+// Priority:
+//   1. ?api=  query param  — self-host mode (validated below)
+//   2. window.__CONFIG__.BOT_API_URL — injected by /config.js at runtime
+//   3. Hard fallback
+const _DEFAULT_API = 'https://api.stoatmod.com';
+
+function _resolveApiBase() {
+  const paramRaw = new URLSearchParams(window.location.search).get('api');
+  if (paramRaw) {
+    const clean = paramRaw.trim().replace(/\/$/, '');
+    try {
+      const u = new URL(clean);
+      const isLocalhost = u.hostname === 'localhost' || u.hostname === '127.0.0.1';
+      const isDev = (window.__CONFIG__?.ENVIRONMENT === 'development');
+      if (u.protocol === 'https:') return clean;
+      if (u.protocol === 'http:' && isLocalhost && isDev) return clean;
+      // Unsafe api= param — fall through to config
+      console.warn('[StoatMod] Ignored unsafe api= param:', clean);
+    } catch { /* not a valid URL */ }
+  }
+  return (window.__CONFIG__?.BOT_API_URL || _DEFAULT_API).replace(/\/$/, '');
+}
+
+const BOT_API_URL = _resolveApiBase();
 
 // ── Token ────────────────────────────────────────────────
 const TOKEN = new URLSearchParams(window.location.search).get('t') || '';
