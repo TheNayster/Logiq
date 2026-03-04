@@ -1,0 +1,11 @@
+2026-02-23 12:25:36,855 - Logiq - INFO - ✅ Stoat adapter loaded
+2026-02-23 12:25:36,861 - Logiq - INFO - 🚀 Starting Logiq (Stoat-only)...
+2026-02-23 12:25:36,945 - Logiq - INFO - ✅ Database connected
+2026-02-23 12:25:37,279 - Logiq - ERROR - ❌ Stoat connection failed: Stoat API returned 404
+Traceback (most recent call last):
+  File "C:\Users\sephi\Documents\GitHub\Logiq\main.py", line 72, in setup
+    await self.adapter.connect(token)
+  File "C:\Users\sephi\Documents\GitHub\Logiq\adapters\stoat_adapter.py", line 54, in connect
+    raise ConnectionError(f"Stoat API returned {resp.status}")
+ConnectionError: Stoat API returned 404
+2026-02-23 12:25:37,280 - Logiq - INFO - 🛑 Shutting down bot...
